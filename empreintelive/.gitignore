@@ -1,0 +1,6 @@
+/node_modules/
+/vendor/
+/tests/.phpunit.cache/
+/tests/phpunit.phar
+.phpunit.result.cache
+/coverage/

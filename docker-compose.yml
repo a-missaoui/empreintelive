@@ -1,0 +1,35 @@
+# Environnement de dev : Nextcloud vierge + Calendar officiel + l'app EMPREINTE montee.
+# Demarrage :
+#   docker compose up -d
+#   # attendre ~30s la fin de l'init (docker compose logs -f nextcloud), puis :
+#   docker compose exec --user www-data nextcloud php occ app:install calendar
+#   docker compose exec --user www-data nextcloud php occ app:enable  calendar
+#   docker compose exec --user www-data nextcloud php occ app:enable  empreintelive
+# Acces : http://localhost:8080  (admin / admin)
+#
+# Le hook before-starting/ corrige les permissions de custom_apps a chaque boot,
+# pour que l'App Store puisse y installer Calendar (sinon erreur "Cannot write
+# into apps directory").
+services:
+  nextcloud:
+    image: nextcloud:32-apache
+    container_name: empreinte-nextcloud
+    ports:
+      - "8080:80"
+    environment:
+      - SQLITE_DATABASE=nextcloud            # SQLite : simple pour le dev
+      - NEXTCLOUD_ADMIN_USER=admin
+      - NEXTCLOUD_ADMIN_PASSWORD=admin
+      - NEXTCLOUD_TRUSTED_DOMAINS=localhost
+    volumes:
+      - nc_data:/var/www/html                # Nextcloud + apps officielles (dont Calendar)
+      # Notre app, montee directement depuis le depot pour iterer sans rebuild :
+      - ./empreintelive:/var/www/html/custom_apps/empreintelive
+      # Hooks executes en root au demarrage (fix permissions custom_apps) :
+      - ./hooks/before-starting:/docker-entrypoint-hooks.d/before-starting
+      # Config opcache DEV : prise en compte immediate des modifs .php :
+      - ./php-dev/zz-opcache-dev.ini:/usr/local/etc/php/conf.d/zz-opcache-dev.ini
+    restart: unless-stopped
+
+volumes:
+  nc_data:

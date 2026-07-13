@@ -1,0 +1,16 @@
+# Dépendances
+**/node_modules/
+**/vendor/
+
+# Build généré (reconstruit au packaging : npm run build)
+empreintelive/js/
+
+# Tests / outils
+**/.phpunit.cache/
+**/phpunit.phar
+.phpunit.result.cache
+**/coverage/
+
+# Debug / local
+captures/
+*.log

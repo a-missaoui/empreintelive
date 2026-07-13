@@ -1,0 +1,23 @@
+{
+	"name": "empreinte/empreinte-calendar-integration",
+	"description": "EMPREINTE Live integration for Nextcloud Calendar",
+	"license": "AGPL-3.0-or-later",
+	"autoload": {
+		"psr-4": {
+			"OCA\\EmpreinteLive\\": "lib/"
+		}
+	},
+	"require": {
+		"php": ">=8.1"
+	},
+	"require-dev": {
+		"phpunit/phpunit": "^10.5"
+	},
+	"scripts": {
+		"test:unit": "phpunit --configuration tests/phpunit.xml"
+	},
+	"config": {
+		"optimize-autoloader": true,
+		"sort-packages": true
+	}
+}

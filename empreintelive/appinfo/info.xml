@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+  SPDX-FileCopyrightText: 2026 EMPREINTE
+  SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+	<id>empreintelive</id>
+	<name>EMPREINTE Live</name>
+	<summary>Adds EMPREINTE Live video meetings to the Nextcloud Calendar.</summary>
+	<description><![CDATA[
+Standalone app that integrates EMPREINTE Live into Nextcloud, sitting alongside
+the official Calendar (without modifying it): OAuth, API proxy, video meeting
+management (create / update / delete), invitations and settings.
+	]]></description>
+	<version>1.0.0</version>
+	<licence>AGPL-3.0-or-later</licence>
+
+	<author mail="dev@empreinte.live">EMPREINTE</author>
+
+	<namespace>EmpreinteLive</namespace>
+	<category>integration</category>
+	<category>organization</category>
+
+	<website>https://github.com/a-missaoui/EmpreinteLive</website>
+	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>
+	<repository type="git">https://github.com/a-missaoui/EmpreinteLive.git</repository>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/app-page.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/calendar-integration.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/login.png</screenshot>
+
+	<dependencies>
+		<php min-version="8.1" max-version="8.5" />
+		<nextcloud min-version="32" max-version="34" />
+	</dependencies>
+
+	<navigations>
+		<navigation>
+			<id>empreintelive</id>
+			<name>EMPREINTE Live</name>
+			<route>empreintelive.page.index</route>
+			<icon>app.svg</icon>
+			<order>80</order>
+		</navigation>
+	</navigations>
+</info>

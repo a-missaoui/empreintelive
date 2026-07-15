@@ -186,5 +186,5 @@ See the [LICENSE](LICENSE) file for the full license text.
 ## Links
 
 - Nextcloud: https://nextcloud.com
-- EMPREINTE Live: [go.empreinte.live](https://go.empreinte.live)
+- EMPREINTE Live: [empreinte.live](https://empreinte.live/)
 - Documentation: [DOCUMENTATION.md](DOCUMENTATION.md)

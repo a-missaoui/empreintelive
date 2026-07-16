@@ -21,7 +21,7 @@ It allows users to schedule, manage, and join video meetings directly from their
 - ♻️ Reconciliation of the "EMPREINTE Live" calendar on login (back-fills missing meetings, hides meetings that belong to another account — never deletes anything on the EMPREINTE side)
 - 👥 Participant autocomplete (Nextcloud users and contacts)
 - 🔗 Organizer-only meeting link, reserved for the creator
-- 🛡️ Server-side token management (no sensitive tokens exposed to the browser)
+- 🛡️ Server-side token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
 - 🚀 Native Nextcloud integration using official OCP APIs and events
 
 ---
@@ -62,13 +62,16 @@ custom_apps/
 php occ app:enable empreintelive
 ```
 
-4. Configure your EMPREINTE Live connection (see below).
+4. Connect your EMPREINTE Live account (see below). No further setup is required.
 
 ---
 
 ## Configuration
 
-After installation:
+The application ships as a public OAuth client secured by PKCE — there is **no client
+secret** to manage, and the OAuth callback is validated and handled by the EMPREINTE
+backend. **No administrator configuration is required.** After installation, users
+connect their account:
 
 1. Open the **EMPREINTE Live** app from the top app menu (its icon next to the other apps).
 2. Connect your EMPREINTE Live account.

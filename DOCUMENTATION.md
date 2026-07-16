@@ -38,8 +38,10 @@ its normal updates from the App Store.
   tokens are stored per Nextcloud user (never in `localStorage`, which is exposed
   to XSS). The frontend only calls *our* internal endpoints; the server is the one
   that talks to EMPREINTE.
-- **Secrets out of the JS code.** `client_id` / `client_secret` / `redirect_uri`
-  come from the app config (`occ config:app:set`), not from a JS file.
+- **Public OAuth client (PKCE, no secret).** The app is a *public* OAuth client:
+  there is **no `client_secret`** to bundle, store, or configure. The flow is
+  secured by PKCE (`code_verifier` / `code_challenge`). The `client_id` is a public
+  value bundled in the app; `redirect_uri` comes from the app config.
 - **Loose coupling to Calendar.** We call no private Calendar API: we listen to a
   **public** Nextcloud event and read the event's `.ics`.
 
@@ -99,9 +101,9 @@ Stack: **Vue 3** + `@nextcloud/vue` 9 + `@nextcloud/webpack-vue-config` 7.
 | File | Role |
 |---|---|
 | `src/main.js` | Entry point (`createApp`), mounts on `#empreintelive-app`. |
-| `src/App.vue` | App-page shell (`NcContent` + `NcAppContent`) embedding `Settings.vue`. |
+| `src/App.vue` | App-page shell (`NcContent` + `NcAppContent`) embedding `MeetingsPage.vue`. |
 | `src/services/api.js` | Axios wrapper to our endpoints (`@nextcloud/axios` adds the requesttoken). **No token handled client-side.** |
-| `src/views/Settings.vue` | Orchestrator: `/oauth/status` → connection form or meeting management. |
+| `src/views/MeetingsPage.vue` | Orchestrator: `/oauth/status` → connection form or meeting management. |
 | `src/components/ConnectionForm.vue` | Login / register tabs → chains `login`, `authorize`, consent, then `connect`. |
 | `src/components/ConsentDialog.vue` | OAuth consent screen: shows the permissions (scopes), emits `approve` / `cancel`. |
 | `src/components/CreateMeeting.vue` | Creation form (local time → ISO8601 UTC) + participant autocomplete. |
@@ -243,17 +245,19 @@ npm run build                 # prod  → js/empreintelive-main.js
 npm run watch                 # dev   → rebuild on every change
 ```
 
-### 4.3 Configure the EMPREINTE OAuth credentials
+### 4.3 OAuth configuration (optional)
+
+The app is a **public OAuth client** secured by PKCE: it ships with a bundled `client_id`
+and a default API URL, there is **no `client_secret`**, and the OAuth callback is
+validated and handled by the EMPREINTE backend. **No configuration is required to
+connect.** The following values can still be overridden if needed:
 
 ```bash
-docker compose exec --user www-data nextcloud php occ config:app:set \
-  empreintelive client_id     --value="..."
-docker compose exec --user www-data nextcloud php occ config:app:set \
-  empreintelive client_secret --value="..."
+# (optional) — none of these are required:
 docker compose exec --user www-data nextcloud php occ config:app:set \
   empreintelive redirect_uri  --value="..."
-# (optional) override the API URL:
-#   occ config:app:set empreintelive api_base_url --value="https://api.empreinte.live"
+#   occ config:app:set empreintelive client_id     --value="..."
+#   occ config:app:set empreintelive api_base_url  --value="https://api.empreinte.live"
 ```
 
 ### 4.4 Use the app
@@ -273,7 +277,7 @@ docker compose exec --user www-data nextcloud php occ config:app:set \
 
 | Layer | Tool | Files | Command |
 |---|---|---|---|
-| Backend PHP | PHPUnit 10 | `tests/Unit/**` (50 tests: Token, OAuth, EmpreinteApi, CalendarEvent, ContactSearch, EmpreinteLiveId, listener) | see `empreintelive/tests/README.md` |
+| Backend PHP | PHPUnit 10 | `tests/Unit/**` (51 tests: Token, OAuth, EmpreinteApi, CalendarEvent, ContactSearch, EmpreinteLiveId, listener) | see `empreintelive/tests/README.md` |
 | Frontend JS | Vitest | `tests-js/api.spec.js` (20 tests) | `npm run test:unit` |
 
 **PHP** (no PHP on the host → run inside the container):
@@ -312,7 +316,7 @@ Unit tests open **no** network connection (everything is mocked).
 - **Reliable connection state**: based on the presence of a **scoped token**
   (`hasScopedToken`, §3).
 - **No separate storage**: the `liveId` is carried by the event's `.ics`.
-- **Unit tests**: PHPUnit (50) + Vitest (20).
+- **Unit tests**: PHPUnit (51) + Vitest (20).
 
 ---
 
@@ -326,8 +330,8 @@ Unit tests open **no** network connection (everything is mocked).
 ### Install on a Nextcloud server
 1. Place the `empreintelive/` folder in the server's `custom_apps/` (or `apps/`).
 2. `occ app:enable empreintelive`.
-3. Configure the OAuth credentials (`occ config:app:set`, see §4.3).
-4. Make sure the official Calendar app is installed and enabled.
+3. Make sure the official Calendar app is installed and enabled. No OAuth
+   configuration is required (see §4.3 for optional overrides).
 
 ---
 

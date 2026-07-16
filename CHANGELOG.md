@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Initial public release.
 
 ### Added
-- OAuth 2.0 connection to an EMPREINTE Live account, with an explicit consent screen and server-side token management.
+- OAuth 2.0 connection to an EMPREINTE Live account, with an explicit consent screen and server-side token management. The app is a public OAuth client secured by PKCE (no client secret), so no administrator configuration is required.
 - Dedicated **EMPREINTE Live** app in the top app menu to create, list, join, and delete video meetings.
 - Automatic creation of the calendar event when a meeting is created.
 - Two-way synchronization with the calendar: trashing, deleting, or editing an event updates the associated meeting.

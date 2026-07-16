@@ -26,9 +26,10 @@ disclosure timeline with you.
 
 ## Scope
 
-This application handles OAuth authentication against EMPREINTE Live. Sensitive
-credentials and tokens are managed **server-side** and are never exposed to the
-browser. Reports related to token exposure, authentication bypass, or calendar
-data leakage are especially appreciated.
+This application handles OAuth authentication against EMPREINTE Live. It is a
+**public OAuth client** secured by **PKCE**, so there is no client secret to store.
+OAuth tokens are managed **server-side** and are never exposed to the browser.
+Reports related to token exposure, authentication bypass, or calendar data leakage
+are especially appreciated.
 
 Thank you for helping keep EMPREINTE Live and its users safe.

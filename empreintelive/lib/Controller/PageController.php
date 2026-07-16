@@ -5,8 +5,8 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Page d'app plein écran (entrée du menu d'apps global / top-bar). Rend le même
- * composant Vue que la section « Paramètres personnels », monté sur sa propre page.
+ * Page d'app plein écran (entrée du menu d'apps global / top-bar) : connexion du
+ * compte EMPREINTE puis création / gestion des réunions.
  */
 
 namespace OCA\EmpreinteLive\Controller;

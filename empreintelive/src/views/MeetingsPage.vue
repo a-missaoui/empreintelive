@@ -49,7 +49,7 @@ import MeetingList from '../components/MeetingList.vue'
 import api from '../services/api.js'
 
 export default {
-	name: 'EmpreinteSettings',
+	name: 'MeetingsPage',
 	components: {
 		NcSettingsSection,
 		NcNoteCard,

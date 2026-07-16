@@ -33,7 +33,6 @@ class OAuthServiceTest extends TestCase {
 		$this->config->method('getAppValue')->willReturnCallback(
 			static fn ($app, $key, $default = '') => match ($key) {
 				'client_id' => 'cid',
-				'client_secret' => 'secret',
 				'redirect_uri' => 'https://cb',
 				default => $default,
 			}
@@ -58,6 +57,22 @@ class OAuthServiceTest extends TestCase {
 		$m->setAccessible(true);
 		$challenge = $m->invoke($this->svc, 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk');
 		$this->assertSame('E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM', $challenge);
+	}
+
+	public function testClientIdFallsBackToBundledDefaultWhenUnconfigured(): void {
+		// Aucune config client_id -> le client_id public embarque doit etre utilise,
+		// pour que l'app fonctionne sans configuration administrateur.
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturnCallback(
+			static fn ($app, $key, $default = '') => $default,
+		);
+		$svc = new OAuthService($this->client, $this->tokens, $config, $this->session);
+
+		$m = new ReflectionMethod(OAuthService::class, 'clientId');
+		$m->setAccessible(true);
+		$clientId = (string)$m->invoke($svc);
+
+		$this->assertNotSame('', $clientId, 'le client_id embarque ne doit jamais etre vide');
 	}
 
 	public function testLoginSuccessStoresToken(): void {
@@ -99,9 +114,10 @@ class OAuthServiceTest extends TestCase {
 	public function testConnectHappyPathExchangesCodeForTokens(): void {
 		$this->tokens->method('loadToken')->willReturn(['access_token' => 'sess', 'token_type' => 'Bearer']);
 
+		$tokenBody = null;
 		// L'etape approve renvoie le meme state que celui envoye (valide la verif anti-CSRF).
 		$this->client->method('request')->willReturnCallback(
-			static function (string $path, string $method, $body, array $headers): array {
+			static function (string $path, string $method, $body, array $headers) use (&$tokenBody): array {
 				if (str_starts_with($path, '/oauth/authorize?')) {
 					return ['status' => 200, 'body' => [], 'location' => null];
 				}
@@ -110,6 +126,7 @@ class OAuthServiceTest extends TestCase {
 					return ['status' => 200, 'body' => null, 'location' => 'https://cb?code=THECODE&state=' . $form['state']];
 				}
 				if ($path === '/oauth/token') {
+					$tokenBody = $body;
 					return ['status' => 200, 'body' => ['access_token' => 'FINAL', 'scope' => 'live:read'], 'location' => null];
 				}
 				return ['status' => 404, 'body' => null, 'location' => null];
@@ -123,6 +140,13 @@ class OAuthServiceTest extends TestCase {
 		$res = $this->svc->connect('u', 'e@x');
 		$this->assertSame('FINAL', $res['access_token']);
 		$this->assertSame('live:read', $res['scope']);
+
+		// Client public : aucun client_secret n'est envoye ; PKCE (code_verifier)
+		// authentifie l'echange a la place.
+		$this->assertIsArray($tokenBody);
+		$this->assertArrayNotHasKey('client_secret', $tokenBody);
+		$this->assertArrayHasKey('code_verifier', $tokenBody);
+		$this->assertSame('cid', $tokenBody['client_id']);
 	}
 
 	public function testAuthorizeReturnsScopesAndStoresState(): void {

@@ -10,8 +10,10 @@ declare(strict_types=1);
  *   - register / login
  *   - flux PKCE : authorize (consent) -> approve -> echange du code -> tokens
  *   - refresh / revoke
- * Le client_id / client_secret ne sont plus dans le JS : ils proviennent de la
- * config de l'app (occ config:app:set empreintelive client_secret --value=...).
+ * Client PUBLIC (RFC 7636/8252) : pas de client_secret. La securite du flux
+ * repose sur PKCE (code_verifier/code_challenge). Le client_id est une valeur
+ * publique embarquee (DEFAULT_CLIENT_ID) ; le redirect_uri reste lu depuis la
+ * config serveur. Aucune configuration requise cote administrateur.
  */
 
 namespace OCA\EmpreinteLive\Service;
@@ -29,6 +31,14 @@ use function strtr;
 class OAuthService {
 	private const SCOPE = 'live:read live:write live:update live:delete';
 
+	/**
+	 * client_id du client public OAuth. Ce n'est PAS un secret : il circule en
+	 * clair dans le flux d'autorisation. Il est donc embarque en dur pour offrir
+	 * une experience « zero configuration » ; un administrateur peut malgre tout
+	 * le surcharger via la config (occ config:app:set empreintelive client_id).
+	 */
+	private const DEFAULT_CLIENT_ID = 'client_0f17901e-dcee-4d';
+
 	/** Prefixe des cles de session portant l'etat PKCE entre authorize et approve. */
 	private const SESSION_PREFIX = Application::APP_ID . '.oauth.';
 
@@ -42,22 +52,14 @@ class OAuthService {
 
 	// --------------------------------------------------------------------- config
 
+	/** client_id embarque, surchargeable par la config ; jamais vide. */
 	private function clientId(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'client_id', '');
-	}
-
-	private function clientSecret(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'client_secret', '');
+		$id = $this->config->getAppValue(Application::APP_ID, 'client_id', self::DEFAULT_CLIENT_ID);
+		return $id !== '' ? $id : self::DEFAULT_CLIENT_ID;
 	}
 
 	private function redirectUri(): string {
 		return $this->config->getAppValue(Application::APP_ID, 'redirect_uri', '');
-	}
-
-	private function assertConfigured(): void {
-		if ($this->clientId() === '' || $this->clientSecret() === '') {
-			throw new RuntimeException('OAuth client non configure. Definissez client_id et client_secret via occ config:app:set.');
-		}
 	}
 
 	// --------------------------------------------------------------------- public
@@ -126,7 +128,6 @@ class OAuthService {
 	 * @return list<string> Scopes demandes (pour affichage cote UI)
 	 */
 	public function authorize(string $userId, string $email): array {
-		$this->assertConfigured();
 		$authHeader = $this->sessionAuthHeader($userId);
 
 		$codeVerifier = $this->randomString(64);
@@ -167,8 +168,6 @@ class OAuthService {
 	 * @return array<string,mixed> Tokens finaux
 	 */
 	public function approve(string $userId): array {
-		$this->assertConfigured();
-
 		$codeVerifier = (string)$this->session->get(self::SESSION_PREFIX . 'code_verifier');
 		$state = (string)$this->session->get(self::SESSION_PREFIX . 'state');
 		$email = (string)$this->session->get(self::SESSION_PREFIX . 'email');
@@ -246,11 +245,12 @@ class OAuthService {
 	 * @return array<string,mixed>
 	 */
 	private function exchangeCode(string $userId, string $code, string $codeVerifier): array {
+		// Client public : pas de client_secret. Le code_verifier (PKCE) authentifie
+		// l'echange a la place du secret.
 		$res = $this->client->request('/oauth/token', 'POST', [
 			'grant_type' => 'authorization_code',
 			'code' => $code,
 			'client_id' => $this->clientId(),
-			'client_secret' => $this->clientSecret(),
 			'redirect_uri' => $this->redirectUri(),
 			'code_verifier' => $codeVerifier,
 		], ['Content-Type' => 'application/json']);
@@ -269,7 +269,6 @@ class OAuthService {
 	 * @return array<string,mixed>
 	 */
 	public function refresh(string $userId): array {
-		$this->assertConfigured();
 		$tokens = $this->tokenService->loadToken($userId);
 		if ($tokens === null || empty($tokens['refresh_token'])) {
 			throw new RuntimeException('Aucun refresh_token disponible');
@@ -279,7 +278,6 @@ class OAuthService {
 			'grant_type' => 'refresh_token',
 			'refresh_token' => $tokens['refresh_token'],
 			'client_id' => $this->clientId(),
-			'client_secret' => $this->clientSecret(),
 		], ['Content-Type' => 'application/json']);
 
 		if (!$this->client->isOk($res['status'])) {
@@ -302,7 +300,6 @@ class OAuthService {
 					'token' => $tokens['access_token'],
 					'token_type_hint' => 'access_token',
 					'client_id' => $this->clientId(),
-					'client_secret' => $this->clientSecret(),
 				], ['Content-Type' => 'application/json']);
 			} catch (\Throwable $e) {
 				// best effort : on supprime quand meme cote local

@@ -57,7 +57,12 @@
 			</NcButton>
 		</form>
 
+		<!--
+			Monté uniquement quand il est affiché : NcModal enregistre un écouteur
+			`keydown` global (useHotKey), inutile tant que le dialogue est fermé.
+		-->
 		<ConsentDialog
+			v-if="showConsent"
 			:show="showConsent"
 			:scopes="scopes"
 			:busy="approving"

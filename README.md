@@ -154,6 +154,22 @@ More details are available in the development documentation.
 
 ![Meeting shown in the Nextcloud Calendar](screenshots/calendar-integration.png)
 
+### Joining a meeting
+
+![Meeting join screen with camera and microphone selection](screenshots/meeting-lobby.png)
+
+### Inviting participants
+
+![Meeting ready dialog with the participant invitation link](screenshots/meeting-invite.png)
+
+### Sharing a presentation
+
+![Media panel used to import a PDF, PPTX, or DOCX presentation](screenshots/meeting-presentation.png)
+
+### In-meeting chat
+
+![Discussion panel open during a meeting](screenshots/meeting-chat.png)
+
 ---
 
 ## Contributing

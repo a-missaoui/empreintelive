@@ -13,6 +13,7 @@ use OCA\EmpreinteLive\Service\OAuthService;
 use OCA\EmpreinteLive\Service\TokenService;
 use OCP\IConfig;
 use OCP\ISession;
+use OCP\IURLGenerator;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use ReflectionMethod;
@@ -23,6 +24,7 @@ class OAuthServiceTest extends TestCase {
 	private TokenService&MockObject $tokens;
 	private IConfig&MockObject $config;
 	private ISession&MockObject $session;
+	private IURLGenerator&MockObject $urlGenerator;
 	private OAuthService $svc;
 
 	protected function setUp(): void {
@@ -49,7 +51,9 @@ class OAuthServiceTest extends TestCase {
 		$this->session->method('remove')->willReturnCallback(function (string $k) use (&$store): void {
 			unset($store[$k]);
 		});
-		$this->svc = new OAuthService($this->client, $this->tokens, $this->config, $this->session);
+		$this->urlGenerator = $this->createMock(IURLGenerator::class);
+		$this->urlGenerator->method('getBaseUrl')->willReturn('https://cloud.example.com');
+		$this->svc = new OAuthService($this->client, $this->tokens, $this->config, $this->session, $this->urlGenerator);
 	}
 
 	public function testCodeChallengeMatchesRfc7636Vector(): void {
@@ -66,13 +70,37 @@ class OAuthServiceTest extends TestCase {
 		$config->method('getAppValue')->willReturnCallback(
 			static fn ($app, $key, $default = '') => $default,
 		);
-		$svc = new OAuthService($this->client, $this->tokens, $config, $this->session);
+		$svc = new OAuthService($this->client, $this->tokens, $config, $this->session, $this->urlGenerator);
 
 		$m = new ReflectionMethod(OAuthService::class, 'clientId');
 		$m->setAccessible(true);
 		$clientId = (string)$m->invoke($svc);
 
 		$this->assertNotSame('', $clientId, 'le client_id embarque ne doit jamais etre vide');
+	}
+
+	public function testRedirectUriDerivedFromInstanceHostWhenUnconfigured(): void {
+		// Aucune config redirect_uri -> il doit etre derive du host de l'instance,
+		// pour que le flux OAuth fonctionne sans configuration administrateur
+		// (regression : un redirect_uri vide fait echouer /oauth/authorize en 400).
+		$config = $this->createMock(IConfig::class);
+		$config->method('getAppValue')->willReturnCallback(
+			static fn ($app, $key, $default = '') => $default,
+		);
+		$svc = new OAuthService($this->client, $this->tokens, $config, $this->session, $this->urlGenerator);
+
+		$m = new ReflectionMethod(OAuthService::class, 'redirectUri');
+		$m->setAccessible(true);
+		$redirectUri = (string)$m->invoke($svc);
+
+		$this->assertSame('https://cloud.example.com/apps/calendar/empreinte-callback', $redirectUri);
+	}
+
+	public function testRedirectUriConfigOverrideTakesPrecedence(): void {
+		// $this->config renvoie 'https://cb' pour redirect_uri : l'override gagne.
+		$m = new ReflectionMethod(OAuthService::class, 'redirectUri');
+		$m->setAccessible(true);
+		$this->assertSame('https://cb', (string)$m->invoke($this->svc));
 	}
 
 	public function testLoginSuccessStoresToken(): void {

@@ -12,8 +12,9 @@ declare(strict_types=1);
  *   - refresh / revoke
  * Client PUBLIC (RFC 7636/8252) : pas de client_secret. La securite du flux
  * repose sur PKCE (code_verifier/code_challenge). Le client_id est une valeur
- * publique embarquee (DEFAULT_CLIENT_ID) ; le redirect_uri reste lu depuis la
- * config serveur. Aucune configuration requise cote administrateur.
+ * publique embarquee (DEFAULT_CLIENT_ID) ; le redirect_uri est derive de l'URL
+ * de l'instance Nextcloud courante (host + CALLBACK_PATH). Aucune configuration
+ * requise cote administrateur.
  */
 
 namespace OCA\EmpreinteLive\Service;
@@ -21,6 +22,7 @@ namespace OCA\EmpreinteLive\Service;
 use OCA\EmpreinteLive\AppInfo\Application;
 use OCP\IConfig;
 use OCP\ISession;
+use OCP\IURLGenerator;
 use RuntimeException;
 use function base64_encode;
 use function hash;
@@ -39,6 +41,15 @@ class OAuthService {
 	 */
 	private const DEFAULT_CLIENT_ID = 'client_0f17901e-dcee-4d';
 
+	/**
+	 * Chemin du callback OAuth, relatif au host de l'instance Nextcloud. Le
+	 * redirect_uri par defaut vaut « <host>/apps/calendar/empreinte-callback »
+	 * (le callback est valide/gere cote backend EMPREINTE, exact-match). Il n'y a
+	 * pas de vraie redirection navigateur : le flux est execute cote serveur, le
+	 * redirect_uri sert uniquement de valeur a faire correspondre.
+	 */
+	private const CALLBACK_PATH = '/apps/calendar/empreinte-callback';
+
 	/** Prefixe des cles de session portant l'etat PKCE entre authorize et approve. */
 	private const SESSION_PREFIX = Application::APP_ID . '.oauth.';
 
@@ -47,6 +58,7 @@ class OAuthService {
 		private TokenService $tokenService,
 		private IConfig $config,
 		private ISession $session,
+		private IURLGenerator $urlGenerator,
 	) {
 	}
 
@@ -58,8 +70,17 @@ class OAuthService {
 		return $id !== '' ? $id : self::DEFAULT_CLIENT_ID;
 	}
 
+	/**
+	 * redirect_uri du flux OAuth. Par defaut derive du host de l'instance courante
+	 * (« <host>/apps/calendar/empreinte-callback »), pour fonctionner sans config.
+	 * Reste surchargeable via la config (occ config:app:set empreintelive redirect_uri).
+	 */
 	private function redirectUri(): string {
-		return $this->config->getAppValue(Application::APP_ID, 'redirect_uri', '');
+		$configured = $this->config->getAppValue(Application::APP_ID, 'redirect_uri', '');
+		if ($configured !== '') {
+			return $configured;
+		}
+		return rtrim($this->urlGenerator->getBaseUrl(), '/') . self::CALLBACK_PATH;
 	}
 
 	// --------------------------------------------------------------------- public

@@ -13,7 +13,7 @@ Standalone app that integrates EMPREINTE Live into Nextcloud, sitting alongside
 the official Calendar (without modifying it): OAuth, API proxy, video meeting
 management (create / update / delete), invitations and settings.
 	]]></description>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<licence>AGPL-3.0-or-later</licence>
 
 	<author mail="dev@empreinte.live">EMPREINTE</author>
@@ -25,9 +25,13 @@ management (create / update / delete), invitations and settings.
 	<website>https://github.com/a-missaoui/EmpreinteLive</website>
 	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>
 	<repository type="git">https://github.com/a-missaoui/EmpreinteLive.git</repository>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/login.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/app-page.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/calendar-integration.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/login.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-lobby.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-invite.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-presentation.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-chat.png</screenshot>
 
 	<dependencies>
 		<php min-version="8.1" max-version="8.5" />

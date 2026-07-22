@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.0.1 – 2026-07-22
+
+### Fixed
+- Connecting an EMPREINTE account failed with `invalid_request` when no `redirect_uri` was configured, because the authorization request was sent with an empty `redirect_uri`. The `redirect_uri` is now derived automatically from the current Nextcloud instance URL (`<host>/apps/calendar/empreinte-callback`), so the connection works out of the box with no administrator configuration. It remains overridable via `occ config:app:set empreintelive redirect_uri`.
+
 ## 1.0.0 – 2026-07-13
 
 Initial public release.

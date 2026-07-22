@@ -41,7 +41,8 @@ its normal updates from the App Store.
 - **Public OAuth client (PKCE, no secret).** The app is a *public* OAuth client:
   there is **no `client_secret`** to bundle, store, or configure. The flow is
   secured by PKCE (`code_verifier` / `code_challenge`). The `client_id` is a public
-  value bundled in the app; `redirect_uri` comes from the app config.
+  value bundled in the app; `redirect_uri` is derived from the Nextcloud instance
+  URL (`<host>/apps/calendar/empreinte-callback`) and needs no configuration.
 - **Loose coupling to Calendar.** We call no private Calendar API: we listen to a
   **public** Nextcloud event and read the event's `.ics`.
 
@@ -249,13 +250,15 @@ npm run watch                 # dev   → rebuild on every change
 
 The app is a **public OAuth client** secured by PKCE: it ships with a bundled `client_id`
 and a default API URL, there is **no `client_secret`**, and the OAuth callback is
-validated and handled by the EMPREINTE backend. **No configuration is required to
+validated and handled by the EMPREINTE backend. The `redirect_uri` is derived
+automatically from the current Nextcloud instance URL
+(`<host>/apps/calendar/empreinte-callback`). **No configuration is required to
 connect.** The following values can still be overridden if needed:
 
 ```bash
 # (optional) — none of these are required:
 docker compose exec --user www-data nextcloud php occ config:app:set \
-  empreintelive redirect_uri  --value="..."
+  empreintelive redirect_uri  --value="https://<host>/apps/calendar/empreinte-callback"
 #   occ config:app:set empreintelive client_id     --value="..."
 #   occ config:app:set empreintelive api_base_url  --value="https://api.empreinte.live"
 ```

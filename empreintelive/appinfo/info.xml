@@ -13,16 +13,15 @@ Standalone app that integrates EMPREINTE Live into Nextcloud, sitting alongside
 the official Calendar (without modifying it): OAuth, API proxy, video meeting
 management (create / update / delete), invitations and settings.
 
-- 🔐 Secure connection to an EMPREINTE Live account using OAuth 2.0, with an explicit consent screen
-- 🎥 Create, list, join, and delete video meetings from the dedicated **EMPREINTE Live** app (its icon in the Nextcloud top app menu)
-- 📅 Integration with the official Nextcloud Calendar application
-- 🔄 Automatic synchronization when the linked calendar event is moved to trash, permanently deleted, or edited
-- ♻️ Reconciliation of the "EMPREINTE Live" calendar on login (back-fills missing meetings, hides meetings that belong to another account — never deletes anything on the EMPREINTE side)
-- 👥 Participant autocomplete (Nextcloud users and contacts)
-- 🔗 Organizer-only meeting link, reserved for the creator
-- 🛡️ Server-side token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
-- 🚀 Native Nextcloud integration using official OCP APIs and events
-
+- 🔐 **Secure connection** to an EMPREINTE Live account using OAuth 2.0, with an explicit consent screen
+- 🎥 **Create, list, join, and delete video meetings** from the dedicated **EMPREINTE Live** app (its icon in the Nextcloud top app menu)
+- 📅 **Integration** with the official Nextcloud Calendar application
+- 🔄 **Automatic synchronization** when the linked calendar event is moved to trash, permanently deleted, or edited
+- ♻️ **Reconciliation** of the "EMPREINTE Live" calendar on login (back-fills missing meetings, hides meetings that belong to another account — never deletes anything on the EMPREINTE side)
+- 👥 **Participant autocomplete** (Nextcloud users and contacts)
+- 🔗 **Organizer-only** meeting link, reserved for the creator
+- 🛡️ **Server-side** token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
+- 🚀 **Native Nextcloud integration** using official OCP APIs and events
 	]]></description>
 	<version>1.0.1</version>
 	<licence>AGPL-3.0-or-later</licence>
@@ -32,6 +31,8 @@ management (create / update / delete), invitations and settings.
 	<namespace>EmpreinteLive</namespace>
 	<category>integration</category>
 	<category>organization</category>
+	<category>multimedia</category>
+	<category>social</category>
 
 	<website>https://github.com/a-missaoui/EmpreinteLive</website>
 	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>

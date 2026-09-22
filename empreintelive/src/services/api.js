@@ -63,6 +63,76 @@ export default {
 		return data
 	},
 
+	// --- Réunion créée depuis un document (app Files) ---
+	async meetingSuggestion(fileId) {
+		const { data } = await axios.get(url('/files/' + encodeURIComponent(fileId) + '/meeting/suggest'))
+		return data // { name, title, attendees, convertible }
+	},
+	async createMeetingForFile(fileId, payload) {
+		const { data } = await axios.post(url('/files/' + encodeURIComponent(fileId) + '/meeting'), payload)
+		return data
+	},
+
+	// --- Documents : dossier Nextcloud lié à une réunion ---
+	async folder(liveId, path = '') {
+		const { data } = await axios.get(url('/lives/' + encodeURIComponent(liveId) + '/folder'), {
+			params: { path },
+		})
+		return data
+	},
+	async suggestFolder(liveId, title = '') {
+		const { data } = await axios.get(
+			url('/lives/' + encodeURIComponent(liveId) + '/folder/suggest'),
+			{ params: { title } },
+		)
+		return data // { path }
+	},
+	async linkFolder(liveId, path) {
+		const { data } = await axios.post(url('/lives/' + encodeURIComponent(liveId) + '/folder'), { path })
+		return data
+	},
+	async unlinkFolder(liveId) {
+		const { data } = await axios.delete(url('/lives/' + encodeURIComponent(liveId) + '/folder'))
+		return data
+	},
+
+	// --- Médias de la réunion : documents présentés ---
+	async recordingFolder(liveId, title = '') {
+		// { path, linked } : dossier ou déposer un enregistrement de la réunion.
+		const { data } = await axios.post(url('/lives/' + encodeURIComponent(liveId) + '/recording-folder'), { title })
+		return data
+	},
+	async medias(liveId) {
+		const { data } = await axios.get(url('/lives/' + encodeURIComponent(liveId) + '/medias'))
+		return data // { available, documents: [{ name, index, slides }] }
+	},
+	async deleteMedia(liveId, docIndex) {
+		const { data } = await axios.delete(url('/lives/' + encodeURIComponent(liveId) + '/medias/' + encodeURIComponent(docIndex)))
+		return data
+	},
+	async sendMedia(liveId, fileId) {
+		const { data } = await axios.post(url('/lives/' + encodeURIComponent(liveId) + '/medias'), { fileId })
+		return data
+	},
+
+	// --- Partages : liens Nextcloud ---
+	async shares(fileId) {
+		const { data } = await axios.get(url('/files/' + encodeURIComponent(fileId) + '/shares'))
+		return Array.isArray(data?.shares) ? data.shares : []
+	},
+	async createShare(fileId, { editable = false, password = null, expiration = null } = {}) {
+		const { data } = await axios.post(url('/files/' + encodeURIComponent(fileId) + '/shares'), {
+			editable,
+			password,
+			expiration,
+		})
+		return data
+	},
+	async deleteShare(shareId) {
+		const { data } = await axios.delete(url('/shares/' + encodeURIComponent(shareId)))
+		return data
+	},
+
 	// --- Participants (autocomplétion utilisateurs / contacts Nextcloud) ---
 	async searchAttendees(search) {
 		const { data } = await axios.get(url('/attendees/search'), { params: { search } })

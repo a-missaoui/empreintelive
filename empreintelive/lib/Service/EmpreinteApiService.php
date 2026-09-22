@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Lot 3 - Logique metier EMPREINTE Live (Lives).
+ * Logique metier EMPREINTE Live (Lives).
  * Porte depuis empreinteLiveService.js (createLiveMeeting, updateLiveMeeting, ...).
  * Toutes les requetes sont authentifiees via OAuthService (refresh automatique sur 401).
  */

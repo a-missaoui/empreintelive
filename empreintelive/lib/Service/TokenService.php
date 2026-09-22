@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Lot 2 - Stockage des tokens OAuth COTE SERVEUR, par utilisateur Nextcloud.
+ * Stockage des tokens OAuth COTE SERVEUR, par utilisateur Nextcloud.
  * Remplace le localStorage du navigateur utilise dans le fork :
  * les tokens ne sont plus exposes au JS (protection contre le XSS).
  */

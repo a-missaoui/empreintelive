@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Lot 1 - Client HTTP bas niveau vers l'API EMPREINTE Live.
+ * Client HTTP bas niveau vers l'API EMPREINTE Live.
  * Centralise tous les appels reseau (remplace le proxy + axios du fork).
  * Aucune logique metier ici : uniquement l'execution des requetes HTTP.
  */

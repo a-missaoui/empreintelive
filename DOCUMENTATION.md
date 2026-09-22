@@ -193,6 +193,101 @@ Guarantees:
 
 ---
 
+### 2.6 Present a document in a meeting (Files entry point)
+
+The Files context menu of a PDF, PPTX or DOCX offers **Present in a meeting**
+(`src/files.js`). It opens `CreateMeetingDialog.vue`; the server side is
+`DocumentMeetingService`.
+
+1. The meeting is created through `MeetingCreationService` — the same sequence as
+   the app page: meeting, calendar event, invitations. Only the first step can
+   fail the whole; once the meeting exists, nothing cancels it.
+2. The document is sent to the meeting. If that fails, the meeting is kept and the
+   failure is reported.
+3. The document's folder is associated with the meeting — **except the user's
+   root folder**, which is never associated: it would expose the whole personal
+   space in the panel.
+
+Participants are pre-filled from the document's existing user and email shares.
+Group shares are deliberately ignored: a group is not a reasonable guest list.
+
+> **Two action registries.** Nextcloud 32 ships `@nextcloud/files` 3.x, which
+> reads actions from `window._nc_fileactions`. Nextcloud 33 and 34 ship 4.x, which
+> reads `window._nc_files_scope` only. `src/files.js` therefore registers the
+> action **twice**, once per library version (4.x is imported under the alias
+> `@nextcloud/files-v4`). Each instance reads its own registry and ignores the
+> other, so the entry is never shown twice. Removing either registration breaks
+> the menu entry on the corresponding Nextcloud versions.
+
+### 2.7 Documents panel: Nextcloud files inside the meeting
+
+The meeting is embedded in the app page (`MeetingRoom.vue`), with the documents
+panel beside it (`DocumentsPanel.vue`). Nextcloud serves the page, so the user is
+already authenticated; the meeting is the iframe, never the other way round —
+Nextcloud refuses to be framed by a third party (`X-Frame-Options` and SameSite
+cookies), so the reverse is not possible.
+
+`MeetingFramePolicyListener` grants, **on the app's pages only**, the two things
+the iframe needs: the meeting domain in `frame-src` (CSP) and camera/microphone
+inside the frame (feature policy). Without the second, the meeting displays but
+stays mute.
+
+| File | Role |
+|---|---|
+| `Service/LiveFolderService.php` | Link between a meeting and a Nextcloud folder (one folder per meeting, unique on `live_id`). |
+| `Service/DocumentService.php` | Reads the linked folder through `getUserFolder()`, so Nextcloud's own permissions apply. Path-traversal guard on sub-folders. |
+| `Service/ShareService.php` | Link shares on a file or on the whole folder: read-only or editable, password, expiration — all native `Share\IManager` options. |
+| `Service/LiveDocumentService.php` | Sends a document to the meeting, lists and removes the meeting's documents. |
+| `Listener/FolderDeletedListener.php` | Removes meeting links pointing at a deleted folder. |
+| `Service/MeetingDomainService.php` | Meeting domains (`meeting_domains`): allowed in the iframe CSP, and the only origins the page accepts a recording from (§2.10). |
+
+**A folder that disappears never leaves a dead link.** When neither the current
+user nor the owner of the link can see the folder any more, it has been deleted:
+the link is removed and the panel offers to associate a new folder. This is
+distinguished from a mere lack of permission, where the link is kept.
+
+**The Nextcloud file is never modified.** Removing a document from a meeting
+removes the copy presented by EMPREINTE, nothing else.
+
+### 2.8 Permissions
+
+No access control is written in this app. Files are read with
+`IRootFolder::getUserFolder($userId)`, so:
+
+- a user who cannot see the folder gets an empty panel, not an error;
+- a user with read-only access can neither send documents to the meeting nor
+  share them — checked by the server, not merely hidden in the interface;
+- sharing requires Nextcloud's own share permission on the node.
+
+### 2.9 Translations
+
+Source strings are in English, as usual for Nextcloud; `l10n/fr.js` and
+`l10n/fr.json` hold the French translation. `Util::addInitScript()` loads the
+translation of the user's language automatically. Dates use the user's locale
+(`getCanonicalLocale()`) and file sizes use `formatFileSize()`, so neither is
+hard-coded to one language.
+
+### 2.10 Recordings saved to Files
+
+The EMPREINTE studio records meetings **in the browser**: the file never reaches a server, so there is nothing for Nextcloud to fetch. The studio can't upload it to Nextcloud either, since Nextcloud's WebDAV doesn't answer cross-origin (CORS) requests and the browser blocks them.
+
+The studio runs inside our page, so it hands the file to the page with `postMessage` instead. No network is involved, and the page then uploads the file with the user's own session.
+
+| Step | From → to | Message |
+|---|---|---|
+| 1 | studio → page | `{ type: 'hello' }` when the studio starts, if it is embedded |
+| 2 | page → studio | `{ type: 'sink', name: 'Nextcloud' }`: the page accepts recordings |
+| 3 | studio → page | `{ type: 'recording', id, blob, mimeType }` when a recording stops |
+| 4 | page → studio | `{ type: 'received', id }`: the page now owns the file |
+
+Every message carries `protocol: 'empreinte-live-recording'` and `version: 1`.
+
+- **Trust.** The page (`src/utils/recordingBridge.js`) only accepts messages that come from its own iframe **and** from a meeting domain (`meeting_domains`, handed to the page as initial state by `PageController`). The studio sends the recording only to the origin that answered `sink`.
+- **No loss.** If the studio gets no `received` within 5 s, it downloads the file as before. Once it gets `received`, the page is responsible: if the upload fails, the page downloads the file itself.
+- **Destination.** `POST /lives/{liveId}/recording-folder` (`DocumentService::recordingFolder`) returns the meeting's folder when the user can create files in it. Otherwise it creates `EMPREINTE Live/<title>` in the user's own space and associates it with the meeting if no folder is associated yet.
+- **Upload.** `src/services/recordingUpload.js` uses a single `PUT` up to 10 MB, and Nextcloud chunked upload above that (`MKCOL`, numbered chunks, `MOVE .file`). An existing file is never overwritten (`If-None-Match: *` / `Overwrite: F`): a 412 response retries with `name (2).webm` and so on. Leaving the page during an upload asks for confirmation.
+- **Studio side.** The change in the studio is `components/empreinte-custom/utils/recordingHost.ts`, called from `ControlBar.tsx`. Recording itself doesn't change.
+
 ## 3. OAuth flow (important)
 
 ⚠️ **A tricky point to know.** The EMPREINTE API has **two steps**:
@@ -217,6 +312,24 @@ problem.
 > `connect`.
 
 ---
+
+### 3.1 Documents: the same OAuth token as meetings
+
+The meeting's documents are handled by three endpoints of the EMPREINTE API, authenticated with the
+user's own OAuth token, exactly like the meetings themselves:
+
+| Call | Purpose |
+|---|---|
+| `POST /lives/{liveId}/convert-document` | Send a document (multipart: `file`, `extension`) and convert it to slides |
+| `GET /lives/{liveId}/docs` | List the documents presented in the meeting |
+| `DELETE /lives/{liveId}/doc-slides/{docIndex}` | Remove a document from the meeting |
+
+`LiveDocumentService` reads the file through `getUserFolder()`, so Nextcloud's permissions decide
+what can be sent, and refuses anything that is not a PDF, PPTX or DOCX, or larger than
+`max_document_bytes` (100 MB by default), before uploading anything.
+
+A call made without a connected EMPREINTE account never reaches the network: the panel says the
+account must be connected instead of reporting the API as unavailable.
 
 ## 4. Getting started (development)
 
@@ -274,14 +387,24 @@ docker compose exec --user www-data nextcloud php occ config:app:set \
 - **Routes** (`appinfo/routes.php`): `occ app:disable empreintelive && occ app:enable empreintelive`.
 - **Frontend**: `npm run build` (or `watch`).
 
+> **Routes**: disabling and re-enabling the app is sometimes not enough — the
+> routing table can stay cached and new routes answer `404`. Restart the
+> container (`docker restart empreinte-nextcloud`) and wait ~15 s.
+
+> **Lazy-loaded chunks**: `@nextcloud/webpack-vue-config` hard-codes
+> `/apps/<id>/js/` as the public path, but an app installed in `custom_apps/` is
+> served from `/custom_apps/<id>/js/`. `src/main.js` therefore sets
+> `__webpack_public_path__` from `generateFilePath()` at runtime. Removing that
+> line breaks every on-demand component, the file picker included.
+
 ---
 
 ## 5. Tests
 
 | Layer | Tool | Files | Command |
 |---|---|---|---|
-| Backend PHP | PHPUnit 10 | `tests/Unit/**` (51 tests: Token, OAuth, EmpreinteApi, CalendarEvent, ContactSearch, EmpreinteLiveId, listener) | see `empreintelive/tests/README.md` |
-| Frontend JS | Vitest | `tests-js/api.spec.js` (20 tests) | `npm run test:unit` |
+| Backend PHP | PHPUnit 10 | `tests/Unit/**` (tokens, OAuth, EMPREINTE API, calendar event, contact search, meeting id, listeners, folder link, documents, shares, URL signature) | see `empreintelive/tests/README.md` |
+| Frontend JS | Vitest | `tests-js/api.spec.js` | `npm run test:unit` |
 
 **PHP** (no PHP on the host → run inside the container):
 
@@ -319,9 +442,22 @@ Unit tests open **no** network connection (everything is mocked).
 - **Reliable connection state**: based on the presence of a **scoped token**
   (`hasScopedToken`, §3).
 - **No separate storage**: the `liveId` is carried by the event's `.ics`.
-- **Unit tests**: PHPUnit (51) + Vitest (20).
+- **Present a document in a meeting** from the Files context menu: the meeting is
+  created with the document already loaded in it (§2.6).
+- **Documents panel**: a Nextcloud folder is associated with a meeting, browsed
+  and previewed beside it (§2.7).
+- **Presenting a document**: PDF, PPTX and DOCX files are sent to the meeting,
+  where EMPREINTE converts them into slides. The meeting's documents are listed
+  and can be removed from it.
+- **Share links**: created and copied from the panel, for one file or for the
+  whole folder, with read-only or editable access, password and expiration.
+- **Unit tests**: PHPUnit and Vitest, no network access.
 
 ---
+
+- **Translations**: English and French.
+- **Compatibility**: verified on Nextcloud 32, 33 and 34, including the upgrade
+  from 1.0.1.
 
 ## 7. Deployment
 

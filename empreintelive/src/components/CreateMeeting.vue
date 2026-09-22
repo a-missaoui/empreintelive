@@ -6,11 +6,11 @@
 -->
 <template>
 	<form class="ec-create" @submit.prevent="submit">
-		<h4>{{ t('empreintelive', 'Nouvelle visioconférence') }}</h4>
+		<h4>{{ t('empreintelive', 'New video meeting') }}</h4>
 
 		<NcTextField
 			v-model="title"
-			:label="t('empreintelive', 'Titre')"
+			:label="t('empreintelive', 'Title')"
 			required />
 
 		<NcTextArea
@@ -20,11 +20,11 @@
 
 		<div class="ec-dates">
 			<label class="ec-date">
-				<span>{{ t('empreintelive', 'Début') }}</span>
+				<span>{{ t('empreintelive', 'Start') }}</span>
 				<input v-model="startTime" type="datetime-local" required>
 			</label>
 			<label class="ec-date">
-				<span>{{ t('empreintelive', 'Fin') }}</span>
+				<span>{{ t('empreintelive', 'End') }}</span>
 				<input v-model="endTime" type="datetime-local">
 			</label>
 		</div>
@@ -40,12 +40,12 @@
 				:closeOnSelect="false"
 				label="displayName"
 				trackBy="email"
-				:placeholder="t('empreintelive', 'Rechercher un utilisateur ou un contact')"
+				:placeholder="t('empreintelive', 'Search for a user or a contact')"
 				@search="onAttendeeSearch">
 				<template #no-options>
 					{{ attendeeLoading
-						? t('empreintelive', 'Recherche…')
-						: t('empreintelive', 'Saisissez un nom pour rechercher un utilisateur ou un contact') }}
+						? t('empreintelive', 'Searching…')
+						: t('empreintelive', 'Type a name to search for a user or a contact') }}
 				</template>
 			</NcSelect>
 		</div>
@@ -61,7 +61,7 @@
 			<template v-if="busy" #icon>
 				<NcLoadingIcon :size="20" />
 			</template>
-			{{ t('empreintelive', 'Créer la visio') }}
+			{{ t('empreintelive', 'Create meeting') }}
 		</NcButton>
 	</form>
 </template>
@@ -138,16 +138,16 @@ export default {
 		 */
 		validate() {
 			if (!this.title.trim()) {
-				return this.t('empreintelive', 'Veuillez saisir un titre.')
+				return this.t('empreintelive', 'Please enter a title.')
 			}
 			if (!this.description.trim()) {
-				return this.t('empreintelive', 'Veuillez saisir une description.')
+				return this.t('empreintelive', 'Please enter a description.')
 			}
 			if (!this.startTime) {
-				return this.t('empreintelive', 'Veuillez indiquer une date de début.')
+				return this.t('empreintelive', 'Please enter a start date.')
 			}
 			if (this.endTime && new Date(this.endTime) <= new Date(this.startTime)) {
-				return this.t('empreintelive', 'La date de fin doit être postérieure à la date de début.')
+				return this.t('empreintelive', 'The end date must be after the start date.')
 			}
 			return ''
 		},
@@ -168,8 +168,8 @@ export default {
 					attendees: this.participants.map((p) => p.email),
 				})
 				showSuccess(res?.eventCreated
-					? this.t('empreintelive', 'Visioconférence créée et ajoutée à votre calendrier.')
-					: this.t('empreintelive', 'Visioconférence créée.'))
+					? this.t('empreintelive', 'Video meeting created and added to your calendar.')
+					: this.t('empreintelive', 'Video meeting created.'))
 				this.reset()
 				this.$emit('created')
 			} catch (e) {
@@ -188,19 +188,19 @@ export default {
 		 * @return {string} Message d'erreur lisible en français.
 		 */
 		friendlyError(raw) {
-			const generic = this.t('empreintelive', 'Échec de la création de la visio.')
+			const generic = this.t('empreintelive', 'Could not create the video meeting.')
 			if (!raw || typeof raw !== 'string') {
 				return generic
 			}
 			const lower = raw.toLowerCase()
 			if (lower.includes('end date') || lower.includes('dateend')) {
-				return this.t('empreintelive', 'La date de fin doit être postérieure à la date de début.')
+				return this.t('empreintelive', 'The end date must be after the start date.')
 			}
 			if (lower.includes('description') && lower.includes('required')) {
-				return this.t('empreintelive', 'Veuillez saisir une description.')
+				return this.t('empreintelive', 'Please enter a description.')
 			}
 			if (lower.includes('title') && lower.includes('required')) {
-				return this.t('empreintelive', 'Veuillez saisir un titre.')
+				return this.t('empreintelive', 'Please enter a title.')
 			}
 			// Message technique (validateur Go, trace…) : on ne l'affiche pas tel quel.
 			if (lower.includes('validation for') || lower.includes('error:field')) {

@@ -19,12 +19,12 @@
 					{{ t('empreintelive', 'EMPREINTE Live') }}
 				</h2>
 				<p class="ec-consent__subtitle">
-					{{ t('empreintelive', 'Accédez à votre compte pour créer des visioconférences') }}
+					{{ t('empreintelive', 'Access your account to create video meetings') }}
 				</p>
 			</div>
 
 			<p class="ec-consent__label">
-				{{ t('empreintelive', 'Permissions demandées') }}
+				{{ t('empreintelive', 'Requested permissions') }}
 			</p>
 			<ul class="ec-consent__permissions">
 				<li v-for="perm in permissions" :key="perm.title" class="ec-consent__permission">
@@ -38,18 +38,18 @@
 
 			<div class="ec-consent__security">
 				<ShieldCheck :size="18" />
-				<span>{{ t('empreintelive', 'Nous n\'accédons qu\'aux données nécessaires aux visioconférences.') }}</span>
+				<span>{{ t('empreintelive', 'We only access the data needed for video meetings.') }}</span>
 			</div>
 
 			<div class="ec-consent__footer">
 				<NcButton :disabled="busy" @click="$emit('cancel')">
-					{{ t('empreintelive', 'Annuler') }}
+					{{ t('empreintelive', 'Cancel') }}
 				</NcButton>
 				<NcButton variant="primary" :disabled="busy" @click="$emit('approve')">
 					<template v-if="busy" #icon>
 						<NcLoadingIcon :size="20" />
 					</template>
-					{{ t('empreintelive', 'Autoriser l\'accès') }}
+					{{ t('empreintelive', 'Allow access') }}
 				</NcButton>
 			</div>
 		</div>
@@ -103,20 +103,20 @@ export default {
 			const perms = []
 			if (has('live:write')) {
 				perms.push({
-					title: this.t('empreintelive', 'Créer des visioconférences'),
-					description: this.t('empreintelive', 'Démarrer des visioconférences depuis vos événements'),
+					title: this.t('empreintelive', 'Create video meetings'),
+					description: this.t('empreintelive', 'Start video meetings from your events'),
 				})
 			}
 			if (has('live:read')) {
 				perms.push({
-					title: this.t('empreintelive', 'Voir les visioconférences'),
-					description: this.t('empreintelive', 'Consulter vos visioconférences planifiées'),
+					title: this.t('empreintelive', 'View video meetings'),
+					description: this.t('empreintelive', 'See your scheduled video meetings'),
 				})
 			}
 			if (has('live:update') || has('live:delete')) {
 				perms.push({
-					title: this.t('empreintelive', 'Gérer les visioconférences'),
-					description: this.t('empreintelive', 'Modifier ou supprimer des visioconférences existantes'),
+					title: this.t('empreintelive', 'Manage video meetings'),
+					description: this.t('empreintelive', 'Edit or delete existing video meetings'),
 				})
 			}
 			return perms

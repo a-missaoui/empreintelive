@@ -146,6 +146,26 @@ More details are available in the development documentation.
 
 ## Screenshots
 
+### Presenting a document from Files
+
+![Present in a meeting action in the Files context menu](screenshots/files-present.png)
+
+### Creating the meeting from the document
+
+![Meeting creation dialog with title, schedule and participants](screenshots/create-meeting.png)
+
+### The meeting and its documents
+
+![Meeting embedded in Nextcloud with the documents panel](screenshots/meeting-documents.png)
+
+### Sharing a file from the meeting
+
+![Share dialog with read-only, password and expiration options](screenshots/share-link.png)
+
+### Recording saved to Files
+
+![Recording saved in the meeting folder](screenshots/recording-saved.png)
+
 ### Account connection
 
 ![EMPREINTE account connection screen](screenshots/login.png)

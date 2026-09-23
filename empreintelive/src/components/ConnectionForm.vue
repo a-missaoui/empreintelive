@@ -11,12 +11,12 @@
 			<NcButton
 				:variant="mode === 'login' ? 'primary' : 'tertiary'"
 				@click="mode = 'login'">
-				{{ t('empreintelive', 'Connexion') }}
+				{{ t('empreintelive', 'Log in') }}
 			</NcButton>
 			<NcButton
 				:variant="mode === 'register' ? 'primary' : 'tertiary'"
 				@click="mode = 'register'">
-				{{ t('empreintelive', 'Inscription') }}
+				{{ t('empreintelive', 'Sign up') }}
 			</NcButton>
 		</div>
 
@@ -24,19 +24,19 @@
 			<NcTextField
 				v-if="mode === 'register'"
 				v-model="name"
-				:label="t('empreintelive', 'Nom')"
+				:label="t('empreintelive', 'Name')"
 				autocomplete="name" />
 
 			<NcTextField
 				v-model="email"
 				type="email"
-				:label="t('empreintelive', 'Adresse e-mail')"
+				:label="t('empreintelive', 'Email address')"
 				autocomplete="email"
 				required />
 
 			<NcPasswordField
 				v-model="password"
-				:label="t('empreintelive', 'Mot de passe')"
+				:label="t('empreintelive', 'Password')"
 				autocomplete="current-password"
 				required />
 
@@ -52,8 +52,8 @@
 					<NcLoadingIcon :size="20" />
 				</template>
 				{{ mode === 'login'
-					? t('empreintelive', 'Se connecter')
-					: t('empreintelive', 'Créer le compte') }}
+					? t('empreintelive', 'Sign in')
+					: t('empreintelive', 'Create account') }}
 			</NcButton>
 		</form>
 
@@ -114,7 +114,7 @@ export default {
 			try {
 				if (this.mode === 'register') {
 					await api.register({ email: this.email, password: this.password, name: this.name })
-					showSuccess(this.t('empreintelive', 'Compte créé.'))
+					showSuccess(this.t('empreintelive', 'Account created.'))
 				}
 				// login puis étape 1/2 du flux OAuth : demande de consentement.
 				await api.login({ email: this.email, password: this.password })
@@ -158,7 +158,7 @@ export default {
 
 		extractError(e) {
 			return e?.response?.data?.error
-				|| this.t('empreintelive', 'Échec de la connexion. Vérifiez vos identifiants.')
+				|| this.t('empreintelive', 'Login failed. Check your credentials.')
 		},
 	},
 }

@@ -7,12 +7,17 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>empreintelive</id>
 	<name>EMPREINTE Live</name>
-	<summary>Adds EMPREINTE Live video meetings to the Nextcloud Calendar.</summary>
+	<summary>EMPREINTE Live video meetings in Nextcloud: schedule them in Calendar, start them from a document in Files.</summary>
 	<description><![CDATA[
-Standalone app that integrates EMPREINTE Live into Nextcloud, sitting alongside
-the official Calendar (without modifying it): OAuth, API proxy, video meeting
-management (create / update / delete), invitations and settings.
+Standalone app that brings EMPREINTE Live video meetings into Nextcloud, alongside
+the official Calendar and Files apps — without modifying them. Start a meeting from a
+document and present it to participants, or schedule meetings from the calendar.
 
+- 📽️ **Present a document in a meeting** straight from Files: the "Present in a meeting" action on a PDF, PPTX or DOCX creates the meeting with the document already loaded in it, ready to present
+- 👥 **Participants suggested from the document's shares**, completed by searching Nextcloud users and contacts, or by typing any email address
+- 📁 **Documents panel beside the meeting**: browse the associated folder with previews, send more documents during the meeting, remove them
+- 🔗 **Share links** for one file or a whole folder — read-only or editable, password, expiration — including for participants without a Nextcloud account
+- 🛡️ **Nextcloud permissions apply everywhere**: a user with read-only access can neither present nor share, enforced by the server
 - 🔐 **Secure connection** to an EMPREINTE Live account using OAuth 2.0, with an explicit consent screen
 - 🎥 **Create, list, join, and delete video meetings** from the dedicated **EMPREINTE Live** app (its icon in the Nextcloud top app menu)
 - 📅 **Integration** with the official Nextcloud Calendar application
@@ -23,7 +28,7 @@ management (create / update / delete), invitations and settings.
 - 🛡️ **Server-side** token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
 - 🚀 **Native Nextcloud integration** using official OCP APIs and events
 	]]></description>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 
 	<author mail="dev@empreinte.live">EMPREINTE</author>
@@ -37,13 +42,18 @@ management (create / update / delete), invitations and settings.
 	<website>https://github.com/a-missaoui/EmpreinteLive</website>
 	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>
 	<repository type="git">https://github.com/a-missaoui/EmpreinteLive.git</repository>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/login.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/app-page.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/calendar-integration.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-lobby.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-invite.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-presentation.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/main/screenshots/meeting-chat.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/files-present.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/create-meeting.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-documents.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/share-link.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/recording-saved.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/app-page.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/login.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/calendar-integration.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-lobby.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-invite.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-presentation.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-chat.png</screenshot>
 
 	<dependencies>
 		<php min-version="8.1" max-version="8.5" />

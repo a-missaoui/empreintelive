@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Lot 2 - Flux OAuth EMPREINTE execute COTE SERVEUR.
+ * Flux OAuth EMPREINTE execute COTE SERVEUR.
  * Porte depuis src/services/empreinteLiveService.js du fork :
  *   - register / login
  *   - flux PKCE : authorize (consent) -> approve -> echange du code -> tokens

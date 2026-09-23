@@ -22,6 +22,10 @@ It allows users to schedule, manage, and join video meetings directly from their
 - 👥 Participant autocomplete (Nextcloud users and contacts)
 - 🔗 Organizer-only meeting link, reserved for the creator
 - 🛡️ Server-side token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
+- 📽️ Present a document in a meeting straight from Files, with participants suggested from the document's shares
+- 📁 Documents panel beside the meeting: associate a Nextcloud folder, browse and preview it without leaving the page
+- 🔗 Share links for one file or the whole folder, with read-only or editable access, password and expiration
+- ⏺️ Meeting recordings saved to the meeting's folder in Nextcloud Files
 - 🚀 Native Nextcloud integration using official OCP APIs and events
 
 ---

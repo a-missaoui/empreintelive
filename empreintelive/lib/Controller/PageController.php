@@ -12,16 +12,20 @@ declare(strict_types=1);
 namespace OCA\EmpreinteLive\Controller;
 
 use OCA\EmpreinteLive\AppInfo\Application;
+use OCA\EmpreinteLive\Service\MeetingDomainService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\TemplateResponse;
+use OCP\AppFramework\Services\IInitialState;
 use OCP\IRequest;
 use OCP\Util;
 
 class PageController extends Controller {
 	public function __construct(
 		IRequest $request,
+		private IInitialState $initialState,
+		private MeetingDomainService $meetingDomains,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -35,6 +39,8 @@ class PageController extends Controller {
 		// Charge le bundle Vue (js/empreintelive-main.js) qui se monte sur le
 		// <div id="empreintelive-app"> du template.
 		Util::addScript(Application::APP_ID, Application::APP_ID . '-main');
+		// Origines dont la page accepte un enregistrement envoye par l'iframe.
+		$this->initialState->provideInitialState('meeting-origins', $this->meetingDomains->domains());
 		return new TemplateResponse(Application::APP_ID, 'main');
 	}
 }

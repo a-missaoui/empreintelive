@@ -5,7 +5,7 @@ declare(strict_types=1);
  * SPDX-FileCopyrightText: 2026 EMPREINTE
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
- * Lot 7 - Garde le Live EMPREINTE synchronise avec son evenement Calendar. Le
+ * Garde le Live EMPREINTE synchronise avec son evenement Calendar. Le
  * liveId est lu DIRECTEMENT dans les donnees ICS de l'evenement (proprietes
  * X-EMPREINTE-*, LOCATION ou DESCRIPTION) : aucun stockage cote app n'est
  * necessaire, l'app reste independante de l'app Calendar (on ne reagit qu'aux

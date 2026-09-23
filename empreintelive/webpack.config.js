@@ -13,6 +13,9 @@ webpackConfig.entry = {
 	// (chargé par PageController::index() via Util::addScript).
 	// webpack-vue-config préfixe déjà l'app id → produit js/empreintelive-main.js.
 	main: path.join(__dirname, 'src', 'main.js'),
+	// Bundle charge dans l'app Files -> js/empreintelive-files.js
+	// (action « Reunion sur ce document » du menu contextuel).
+	files: path.join(__dirname, 'src', 'files.js'),
 }
 
 webpackConfig.resolve = {

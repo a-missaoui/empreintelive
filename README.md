@@ -146,6 +146,18 @@ More details are available in the development documentation.
 
 ## Screenshots
 
+### Account connection
+
+![EMPREINTE account connection screen](screenshots/login.png)
+
+### EMPREINTE Live app page
+
+![EMPREINTE Live app page](screenshots/app-page.png)
+
+### Calendar integration
+
+![Meeting shown in the Nextcloud Calendar](screenshots/calendar-integration.png)
+
 ### Presenting a document from Files
 
 ![Present in a meeting action in the Files context menu](screenshots/files-present.png)
@@ -166,18 +178,6 @@ More details are available in the development documentation.
 
 ![Recording saved in the meeting folder](screenshots/recording-saved.png)
 
-### Account connection
-
-![EMPREINTE account connection screen](screenshots/login.png)
-
-### EMPREINTE Live app page
-
-![EMPREINTE Live app page](screenshots/app-page.png)
-
-### Calendar integration
-
-![Meeting shown in the Nextcloud Calendar](screenshots/calendar-integration.png)
-
 ### Joining a meeting
 
 ![Meeting join screen with camera and microphone selection](screenshots/meeting-lobby.png)
@@ -186,7 +186,7 @@ More details are available in the development documentation.
 
 ![Meeting ready dialog with the participant invitation link](screenshots/meeting-invite.png)
 
-### Sharing a presentation
+### Presenting inside the meeting
 
 ![Media panel used to import a PDF, PPTX, or DOCX presentation](screenshots/meeting-presentation.png)
 

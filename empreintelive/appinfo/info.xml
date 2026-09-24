@@ -42,6 +42,12 @@ document and present it to participants, or schedule meetings from the calendar.
 	<website>https://github.com/a-missaoui/EmpreinteLive</website>
 	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>
 	<repository type="git">https://github.com/a-missaoui/EmpreinteLive.git</repository>
+
+	<dependencies>
+		<php min-version="8.1" max-version="8.5" />
+		<nextcloud min-version="32" max-version="34" />
+	</dependencies>
+
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/files-present.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/create-meeting.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-documents.png</screenshot>
@@ -54,11 +60,6 @@ document and present it to participants, or schedule meetings from the calendar.
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-invite.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-presentation.png</screenshot>
 	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.0/screenshots/meeting-chat.png</screenshot>
-
-	<dependencies>
-		<php min-version="8.1" max-version="8.5" />
-		<nextcloud min-version="32" max-version="34" />
-	</dependencies>
 
 	<navigations>
 		<navigation>

@@ -60,7 +60,10 @@ class MeetingFramePolicyListener implements IEventListener {
 
 		if ($event instanceof AddFeaturePolicyEvent) {
 			$policy = new EmptyFeaturePolicy();
-			foreach ($domains as $domain) {
+			// « 'self' » est indispensable : une page ne peut deleguer a une iframe
+			// qu'une permission qu'elle detient elle-meme. Sans lui, le navigateur
+			// refuse camera et micro dans la reunion sans meme demander a l'utilisateur.
+			foreach (["'self'", ...$domains] as $domain) {
 				$policy->addAllowedCameraDomain($domain);
 				$policy->addAllowedMicrophoneDomain($domain);
 				$policy->addAllowedFullScreenDomain($domain);

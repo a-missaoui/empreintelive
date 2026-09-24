@@ -5,6 +5,11 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.1.1 – 2026-09-24
+
+### Fixed
+- The app description could not be published: `info.xml` listed more screenshots than the App Store schema allows, and the dependency block was declared in the wrong position. The metadata is now valid. No change to the application itself.
+
 ## 1.1.0 – 2026-09-18
 
 ### Added

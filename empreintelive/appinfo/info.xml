@@ -28,7 +28,7 @@ document and present it to participants, or schedule meetings from the calendar.
 - 🛡️ **Server-side** token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
 - 🚀 **Native Nextcloud integration** using official OCP APIs and events
 	]]></description>
-	<version>1.1.1</version>
+	<version>1.1.2</version>
 	<licence>AGPL-3.0-or-later</licence>
 
 	<author mail="dev@empreinte.live">EMPREINTE</author>
@@ -42,16 +42,16 @@ document and present it to participants, or schedule meetings from the calendar.
 	<website>https://github.com/a-missaoui/EmpreinteLive</website>
 	<bugs>https://github.com/a-missaoui/EmpreinteLive/issues</bugs>
 	<repository type="git">https://github.com/a-missaoui/EmpreinteLive.git</repository>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/files-present.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/create-meeting.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/meeting-documents.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/share-link.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/recording-saved.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/app-page.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/login.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/calendar-integration.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/meeting-lobby.png</screenshot>
-	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.1/screenshots/meeting-chat.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/files-present.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/create-meeting.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/meeting-documents.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/share-link.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/recording-saved.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/app-page.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/login.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/calendar-integration.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/meeting-lobby.png</screenshot>
+	<screenshot>https://raw.githubusercontent.com/a-missaoui/EmpreinteLive/v1.1.2/screenshots/meeting-chat.png</screenshot>
 	<dependencies>
 		<php min-version="8.1" max-version="8.5" />
 		<nextcloud min-version="32" max-version="34" />

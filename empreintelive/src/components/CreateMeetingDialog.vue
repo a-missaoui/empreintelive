@@ -40,6 +40,21 @@
 				</div>
 			</div>
 
+			<!--
+				Compte EMPREINTE absent ou refusé par l'API : on propose la connexion
+				ici même, sans quitter Files. Le formulaire de la réunion est conservé
+				et réaffiché une fois connecté.
+			-->
+			<div v-else-if="needsConnection" class="ec-meet__form">
+				<NcNoteCard type="warning">
+					<p>{{ t('empreintelive', 'Connect your EMPREINTE account to create this meeting.') }}</p>
+					<p v-if="connectionReason" class="ec-meet__hint">
+						{{ connectionReason }}
+					</p>
+				</NcNoteCard>
+				<ConnectionForm @connected="onConnected" />
+			</div>
+
 			<!-- Formulaire -->
 			<div v-else class="ec-meet__form">
 				<NcNoteCard v-if="!convertible" type="warning">
@@ -99,6 +114,7 @@ import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
 import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
+import ConnectionForm from './ConnectionForm.vue'
 import api from '../services/api.js'
 
 /**
@@ -116,7 +132,7 @@ function localInput(date) {
 export default {
 	name: 'CreateMeetingDialog',
 
-	components: { NcDialog, NcButton, NcTextField, NcNoteCard, NcSelect, NcLoadingIcon },
+	components: { NcDialog, NcButton, NcTextField, NcNoteCard, NcSelect, NcLoadingIcon, ConnectionForm },
 
 	props: {
 		fileId: {
@@ -147,6 +163,8 @@ export default {
 			attendeeLoading: false,
 			searchTimer: null,
 			created: null,
+			needsConnection: false,
+			connectionReason: '',
 		}
 	},
 
@@ -158,6 +176,15 @@ export default {
 	},
 
 	async mounted() {
+		// Sans compte EMPREINTE connecté, la création échouerait à coup sûr :
+		// autant proposer la connexion dès l'ouverture. Si la vérification
+		// échoue, on laisse la création trancher.
+		const status = api.status()
+			.then(({ connected }) => {
+				this.needsConnection = !connected
+			})
+			.catch(() => {})
+
 		try {
 			const s = await api.meetingSuggestion(this.fileId)
 			this.title = s.title
@@ -168,6 +195,7 @@ export default {
 		} catch {
 			this.title = this.fileName
 		} finally {
+			await status
 			this.loading = false
 		}
 	},
@@ -234,12 +262,32 @@ export default {
 					attendees: this.participants.map((p) => p.email),
 				})
 			} catch (e) {
-				showError(e?.response?.data?.error === 'not_found'
-					? this.t('empreintelive', 'File not found.')
-					: this.t('empreintelive', 'The meeting could not be created.'))
+				const data = e?.response?.data ?? {}
+				if (data.error === 'not_connected') {
+					// Compte absent, supprimé côté EMPREINTE ou sans consentement :
+					// on affiche la connexion avec le motif renvoyé par l'API.
+					this.connectionReason = data.message ?? ''
+					this.needsConnection = true
+				} else if (data.error === 'not_found') {
+					showError(this.t('empreintelive', 'File not found.'))
+				} else {
+					// Message de l'API transmis s'il est lisible ; une trace de
+					// validateur Go reste masquée derrière le message générique.
+					const reason = String(data.message ?? '')
+					const technical = /validation for|error:field/i.test(reason)
+					showError(reason && !technical
+						? this.t('empreintelive', 'The meeting could not be created: {reason}', { reason })
+						: this.t('empreintelive', 'The meeting could not be created.'))
+				}
 			} finally {
 				this.busy = false
 			}
+		},
+
+		onConnected() {
+			this.needsConnection = false
+			this.connectionReason = ''
+			showSuccess(this.t('empreintelive', 'EMPREINTE account connected.'))
 		},
 
 		openMeeting() {

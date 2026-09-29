@@ -12,6 +12,7 @@ declare(strict_types=1);
 
 namespace OCA\EmpreinteLive\Service;
 
+use OCA\EmpreinteLive\Exception\NotConnectedException;
 use RuntimeException;
 use function is_array;
 
@@ -25,8 +26,14 @@ class EmpreinteApiService {
 	/**
 	 * Requete authentifiee, avec un retry apres refresh si le token est rejete (401).
 	 *
+	 * Un 401 qui persiste apres le refresh, ou un 403 insufficient_scope, signifie
+	 * que le compte n'est plus utilisable tel quel (compte supprime cote EMPREINTE,
+	 * consentement manquant) : le token est oublie, pour que l'app repropose la
+	 * connexion, et le motif de l'API est remonte.
+	 *
 	 * @param array<string,mixed>|null $body
 	 * @return array{status:int, body:mixed, location:?string}
+	 * @throws NotConnectedException
 	 */
 	private function authed(string $userId, string $path, string $method = 'GET', ?array $body = null): array {
 		$headers = [
@@ -36,9 +43,21 @@ class EmpreinteApiService {
 		$res = $this->client->request($path, $method, $body, $headers);
 
 		if ($res['status'] === 401) {
-			$this->oauth->refresh($userId);
+			try {
+				$this->oauth->refresh($userId);
+			} catch (NotConnectedException) {
+				// Le refresh echoue aussi : le vrai motif est celui du premier refus
+				// (ex. « User not found »), pas l'echec du refresh qui en decoule.
+				throw new NotConnectedException($this->msg($res, 'Compte EMPREINTE non connecte'));
+			}
 			$headers['Authorization'] = $this->oauth->getAuthorizationHeader($userId);
 			$res = $this->client->request($path, $method, $body, $headers);
+		}
+
+		$error = is_array($res['body']) ? ($res['body']['error'] ?? null) : null;
+		if ($res['status'] === 401 || ($res['status'] === 403 && $error === 'insufficient_scope')) {
+			$this->oauth->logout($userId);
+			throw new NotConnectedException($this->msg($res, 'Compte EMPREINTE non connecte'));
 		}
 		return $res;
 	}
@@ -178,12 +197,16 @@ class EmpreinteApiService {
 	}
 
 	/**
+	 * Message lisible de l'API. Les erreurs OAuth (middleware d'authentification)
+	 * portent le detail dans error_description, `error` n'etant qu'un code
+	 * (« invalid_token ») : on prefere donc le detail au code.
+	 *
 	 * @param array{status:int, body:mixed, location:?string} $res
 	 */
 	private function msg(array $res, string $fallback): string {
 		$body = $res['body'] ?? null;
 		if (is_array($body)) {
-			return (string)($body['message'] ?? $body['error'] ?? $fallback);
+			return (string)($body['message'] ?? $body['error_description'] ?? $body['error'] ?? $fallback);
 		}
 		return $fallback;
 	}

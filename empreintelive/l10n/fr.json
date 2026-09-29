@@ -154,6 +154,8 @@
     "The recording could not be saved to Nextcloud. It was downloaded to your device instead." : "L'enregistrement n'a pas pu être envoyé vers Nextcloud. Il a été téléchargé sur votre appareil.",
     "Connect your EMPREINTE account to see the meeting's documents." : "Connectez votre compte EMPREINTE pour voir les documents de la réunion.",
     "Connect your EMPREINTE account first." : "Connectez d'abord votre compte EMPREINTE.",
-    "EMPREINTE refused the request for this meeting." : "EMPREINTE a refusé la demande pour cette réunion."
+    "EMPREINTE refused the request for this meeting." : "EMPREINTE a refusé la demande pour cette réunion.",
+    "Connect your EMPREINTE account to create this meeting." : "Connectez votre compte EMPREINTE pour créer cette réunion.",
+    "The meeting could not be created: {reason}" : "La réunion n'a pas pu être créée : {reason}"
 },"pluralForm" :"nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;"
 }

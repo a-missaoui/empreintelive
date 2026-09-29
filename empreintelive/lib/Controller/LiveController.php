@@ -6,6 +6,10 @@ declare(strict_types=1);
  * SPDX-License-Identifier: AGPL-3.0-or-later
  *
  * Endpoints de gestion des Lives (couche fine : delegue a EmpreinteApiService).
+ *
+ * Les echecs repondent 500, jamais 502 : en production, Cloudflare remplace toute
+ * reponse 502 de l'origine par sa propre page d'erreur, et le message de l'API
+ * n'atteindrait jamais l'interface.
  */
 
 namespace OCA\EmpreinteLive\Controller;
@@ -46,7 +50,7 @@ class LiveController extends Controller {
 		try {
 			return new JSONResponse(['data' => $this->api->getMeetings($this->userId())]);
 		} catch (Throwable $e) {
-			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_GATEWAY);
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -73,7 +77,7 @@ class LiveController extends Controller {
 				$attendees,
 			));
 		} catch (Throwable $e) {
-			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_GATEWAY);
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -94,7 +98,7 @@ class LiveController extends Controller {
 			]);
 			return new JSONResponse(['data' => $live]);
 		} catch (Throwable $e) {
-			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_GATEWAY);
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -107,7 +111,7 @@ class LiveController extends Controller {
 			$this->calendarEvents->deleteEventForLive($userId, $id);
 			return new JSONResponse(['success' => true]);
 		} catch (Throwable $e) {
-			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_GATEWAY);
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 }

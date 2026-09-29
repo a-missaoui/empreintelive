@@ -14,6 +14,7 @@ namespace OCA\EmpreinteLive\Controller;
 
 use OCA\EmpreinteLive\AppInfo\Application;
 use OCA\EmpreinteLive\Exception\LiveDocumentException;
+use OCA\EmpreinteLive\Exception\NotConnectedException;
 use OCA\EmpreinteLive\Service\DocumentMeetingService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -22,6 +23,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCP\IRequest;
 use OCP\IUserSession;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Throwable;
 
 class DocumentMeetingController extends Controller {
@@ -81,12 +83,25 @@ class DocumentMeetingController extends Controller {
 				$endTime,
 				$attendees,
 			));
+		} catch (NotConnectedException $e) {
+			// Compte EMPREINTE absent ou refuse par l'API : la boite de dialogue
+			// propose alors la connexion au lieu d'un simple message d'echec.
+			return new JSONResponse(['error' => 'not_connected', 'message' => $e->getMessage()], Http::STATUS_UNAUTHORIZED);
 		} catch (LiveDocumentException $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		} catch (RuntimeException $e) {
+			// Refus de l'API EMPREINTE : son message est transmis tel quel.
+			//
+			// Jamais de 502 ici : en production, Cloudflare remplace toute reponse
+			// 502 de l'origine par sa propre page d'erreur, et le corps JSON (code et
+			// motif) n'atteint alors jamais la boite de dialogue. Un 500 passe tel quel.
+			$this->logger->warning('Creation de la reunion depuis un document refusee', ['exception' => $e]);
+
+			return new JSONResponse(['error' => 'create_failed', 'message' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		} catch (Throwable $e) {
 			$this->logger->error('Creation de la reunion depuis un document impossible', ['exception' => $e]);
 
-			return new JSONResponse(['error' => 'create_failed'], Http::STATUS_BAD_GATEWAY);
+			return new JSONResponse(['error' => 'create_failed'], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
 	}
 

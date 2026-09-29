@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace OCA\EmpreinteLive\Tests\Unit\Service;
 
+use OCA\EmpreinteLive\Exception\NotConnectedException;
 use OCA\EmpreinteLive\Service\EmpreinteApiService;
 use OCA\EmpreinteLive\Service\EmpreinteClient;
 use OCA\EmpreinteLive\Service\OAuthService;
@@ -83,5 +84,63 @@ class EmpreinteApiServiceTest extends TestCase {
 		$res = $this->api->getLive('u', '7');
 		$this->assertSame(7, $res['id']);
 		$this->assertSame(2, $calls);
+	}
+
+	/**
+	 * Compte supprime cote EMPREINTE : le middleware repond 401 avec le detail
+	 * dans error_description. Ce detail doit remonter (et non le code
+	 * « invalid_token »), et le token inutilisable doit etre oublie.
+	 */
+	public function testCreateLiveThrowsNotConnectedWhenApiStillRejectsTokenAfterRefresh(): void {
+		$this->client->method('request')->willReturn([
+			'status' => 401,
+			'body' => ['error' => 'invalid_token', 'error_description' => 'User not found'],
+			'location' => null,
+		]);
+		$this->oauth->expects($this->once())->method('refresh')->with('u');
+		$this->oauth->expects($this->once())->method('logout')->with('u');
+
+		$this->expectException(NotConnectedException::class);
+		$this->expectExceptionMessage('User not found');
+		$this->api->createLive('u', ['title' => 'T']);
+	}
+
+	public function testApiReasonIsKeptWhenRefreshAlsoFails(): void {
+		$this->client->method('request')->willReturn([
+			'status' => 401,
+			'body' => ['error' => 'invalid_token', 'error_description' => 'User not found'],
+			'location' => null,
+		]);
+		$this->oauth->method('refresh')->willThrowException(new NotConnectedException('Echec du rafraichissement'));
+
+		$this->expectException(NotConnectedException::class);
+		$this->expectExceptionMessage('User not found');
+		$this->api->createLive('u', ['title' => 'T']);
+	}
+
+	public function testMissingScopeIsTreatedAsNotConnected(): void {
+		$this->client->method('request')->willReturn([
+			'status' => 403,
+			'body' => ['error' => 'insufficient_scope', 'error_description' => 'Missing required scope: live:write'],
+			'location' => null,
+		]);
+		$this->oauth->expects($this->never())->method('refresh');
+		$this->oauth->expects($this->once())->method('logout')->with('u');
+
+		$this->expectException(NotConnectedException::class);
+		$this->expectExceptionMessage('Missing required scope: live:write');
+		$this->api->createLive('u', ['title' => 'T']);
+	}
+
+	public function testErrorDescriptionIsPreferredOverErrorCode(): void {
+		$this->client->method('request')->willReturn([
+			'status' => 404,
+			'body' => ['error' => 'invalid_request', 'error_description' => 'user not found'],
+			'location' => null,
+		]);
+
+		$this->expectException(\RuntimeException::class);
+		$this->expectExceptionMessage('user not found');
+		$this->api->deleteLive('u', '42');
 	}
 }

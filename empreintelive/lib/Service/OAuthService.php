@@ -20,6 +20,7 @@ declare(strict_types=1);
 namespace OCA\EmpreinteLive\Service;
 
 use OCA\EmpreinteLive\AppInfo\Application;
+use OCA\EmpreinteLive\Exception\NotConnectedException;
 use OCP\IConfig;
 use OCP\ISession;
 use OCP\IURLGenerator;
@@ -292,7 +293,7 @@ class OAuthService {
 	public function refresh(string $userId): array {
 		$tokens = $this->tokenService->loadToken($userId);
 		if ($tokens === null || empty($tokens['refresh_token'])) {
-			throw new RuntimeException('Aucun refresh_token disponible');
+			throw new NotConnectedException('Aucun refresh_token disponible');
 		}
 
 		$res = $this->client->request('/oauth/token', 'POST', [
@@ -303,7 +304,7 @@ class OAuthService {
 
 		if (!$this->client->isOk($res['status'])) {
 			$this->tokenService->deleteToken($userId);
-			throw new RuntimeException('Echec du rafraichissement du token. Reconnectez-vous.');
+			throw new NotConnectedException('Echec du rafraichissement du token. Reconnectez-vous.');
 		}
 		$newTokens = is_array($res['body']) ? $res['body'] : [];
 		$this->tokenService->saveToken($userId, $newTokens);
@@ -335,7 +336,7 @@ class OAuthService {
 	public function getAuthorizationHeader(string $userId): string {
 		$tokens = $this->tokenService->loadToken($userId);
 		if ($tokens === null || empty($tokens['access_token'])) {
-			throw new RuntimeException('Non authentifie. Connectez votre compte EMPREINTE.');
+			throw new NotConnectedException('Non authentifie. Connectez votre compte EMPREINTE.');
 		}
 		if ($this->tokenService->isExpired($tokens)) {
 			$tokens = $this->refresh($userId);

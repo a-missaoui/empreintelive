@@ -5,6 +5,13 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.1.3 – 2026-09-29
+
+### Fixed
+- **Creating a meeting from Files without a connected EMPREINTE account.** The dialog only said that the meeting could not be created, with no way to sign in. It now checks the connection when it opens and shows the EMPREINTE login form in place; once signed in, the meeting form comes back as it was filled in. The same happens if EMPREINTE rejects the account while the meeting is being created.
+- **The reason given by EMPREINTE was lost.** When EMPREINTE rejects the account (for example "User not found" for a deleted account, or an expired token), the app showed the bare code `invalid_token` or a generic failure. The reason EMPREINTE gives is now passed on unchanged, and an account EMPREINTE no longer accepts is disconnected, so the app offers to sign in again.
+- **Error details were replaced by Cloudflare in production.** Failed requests answered with HTTP 502, which Cloudflare swaps for its own "Bad gateway" page, so the app never received the actual reason. They now answer with HTTP 500, and the reason reaches the interface.
+
 ## 1.1.2 – 2026-09-24
 
 ### Fixed

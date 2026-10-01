@@ -7,7 +7,7 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>empreintelive</id>
 	<name>EMPREINTE Live</name>
-	<summary>EMPREINTE Live video meetings in Nextcloud: schedule them in Calendar, start them from a document in Files.</summary>
+	<summary>EMPREINTE Live video meetings in Nextcloud: schedule them in Calendar, start them from a document in Files, share them in Talk.</summary>
 	<description><![CDATA[
 Standalone app that brings EMPREINTE Live video meetings into Nextcloud, alongside
 the official Calendar and Files apps — without modifying them. Start a meeting from a
@@ -26,9 +26,14 @@ document and present it to participants, or schedule meetings from the calendar.
 - 👥 **Participant autocomplete** (Nextcloud users and contacts)
 - 🔗 **Organizer-only** meeting link, reserved for the creator
 - 🛡️ **Server-side** token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
-- 🚀 **Native Nextcloud integration** using official OCP APIs and events
+- 💬 **Meeting cards** in Talk, Text, Deck, Collectives and file comments: a pasted meeting link shows its title, time and status, with a "Join" button — details for the creator only
+- ➕ **Insert a meeting from the message box**: "EMPREINTE Live" in the link picker lists upcoming meetings or creates one, and inserts its participant link
+- 🤖 **Talk bot**: `/empreinte <title> [tomorrow|DD/MM] [14:30] [45min]` creates the meeting from a conversation and posts its link; the conversation's members are invited in one click. Set up automatically, enabled per conversation by its moderators
+- 🗨️ **Talk conversation** for a meeting, created from the meeting list, or its link posted in an existing conversation
+- 🔎 **Unified search**: find your meetings by title from the Nextcloud search
+- 🚀 **Native Nextcloud integration** using official OCP APIs and events — Talk is optional, and nothing else changes without it
 	]]></description>
-	<version>1.1.3</version>
+	<version>1.2.0</version>
 	<licence>AGPL-3.0-or-later</licence>
 
 	<author mail="dev@empreinte.live">EMPREINTE</author>
@@ -56,6 +61,18 @@ document and present it to participants, or schedule meetings from the calendar.
 		<php min-version="8.1" max-version="8.5" />
 		<nextcloud min-version="32" max-version="34" />
 	</dependencies>
+
+	<repair-steps>
+		<post-migration>
+			<step>OCA\EmpreinteLive\Migration\RegisterTalkBot</step>
+		</post-migration>
+		<install>
+			<step>OCA\EmpreinteLive\Migration\RegisterTalkBot</step>
+		</install>
+		<uninstall>
+			<step>OCA\EmpreinteLive\Migration\UnregisterTalkBot</step>
+		</uninstall>
+	</repair-steps>
 
 
 

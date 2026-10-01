@@ -15,9 +15,12 @@ declare(strict_types=1);
 namespace OCA\EmpreinteLive\Controller;
 
 use OCA\EmpreinteLive\AppInfo\Application;
+use OCA\EmpreinteLive\Exception\NotConnectedException;
 use OCA\EmpreinteLive\Service\CalendarEventService;
 use OCA\EmpreinteLive\Service\EmpreinteApiService;
 use OCA\EmpreinteLive\Service\MeetingCreationService;
+use OCA\EmpreinteLive\Service\MemberInvitationService;
+use OCA\EmpreinteLive\Service\TokenService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -32,9 +35,20 @@ class LiveController extends Controller {
 		private EmpreinteApiService $api,
 		private MeetingCreationService $meetings,
 		private CalendarEventService $calendarEvents,
+		private MemberInvitationService $memberInvitations,
+		private TokenService $tokens,
 		private IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
+	}
+
+	/**
+	 * Compte EMPREINTE absent ou refuse par l'API (compte supprime, jeton expire) :
+	 * l'interface propose alors la connexion, avec le motif de l'API, au lieu d'un
+	 * simple message d'echec. Meme reponse que DocumentMeetingController.
+	 */
+	private function notConnected(NotConnectedException $e): JSONResponse {
+		return new JSONResponse(['error' => 'not_connected', 'message' => $e->getMessage()], Http::STATUS_UNAUTHORIZED);
 	}
 
 	private function userId(): string {
@@ -49,6 +63,8 @@ class LiveController extends Controller {
 	public function index(): JSONResponse {
 		try {
 			return new JSONResponse(['data' => $this->api->getMeetings($this->userId())]);
+		} catch (NotConnectedException $e) {
+			return $this->notConnected($e);
 		} catch (Throwable $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -76,6 +92,8 @@ class LiveController extends Controller {
 				$endTime,
 				$attendees,
 			));
+		} catch (NotConnectedException $e) {
+			return $this->notConnected($e);
 		} catch (Throwable $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -97,6 +115,34 @@ class LiveController extends Controller {
 				'endTime' => $endTime,
 			]);
 			return new JSONResponse(['data' => $live]);
+		} catch (NotConnectedException $e) {
+			return $this->notConnected($e);
+		} catch (Throwable $e) {
+			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/**
+	 * Invite les membres d'une conversation Talk, lus par le navigateur avec les
+	 * droits Talk de l'utilisateur. Reserve au createur de la reunion.
+	 *
+	 * @param list<string>|array<mixed> $userIds comptes Nextcloud membres du salon
+	 * @param list<string>|array<mixed> $emails  invites du salon par adresse
+	 */
+	#[NoAdminRequired]
+	public function inviteMembers(string $id, array $userIds = [], array $emails = []): JSONResponse {
+		try {
+			$userId = $this->userId();
+			if (!$this->tokens->hasToken($userId)) {
+				return new JSONResponse(['error' => 'not_connected'], Http::STATUS_UNAUTHORIZED);
+			}
+			$result = $this->memberInvitations->invite($userId, $id, $userIds, $emails);
+			if ($result === null) {
+				return new JSONResponse(['error' => 'not_your_meeting'], Http::STATUS_FORBIDDEN);
+			}
+			return new JSONResponse($result);
+		} catch (NotConnectedException $e) {
+			return $this->notConnected($e);
 		} catch (Throwable $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}
@@ -110,6 +156,8 @@ class LiveController extends Controller {
 			// Sens live -> calendrier : retire l'evenement-miroir (best-effort).
 			$this->calendarEvents->deleteEventForLive($userId, $id);
 			return new JSONResponse(['success' => true]);
+		} catch (NotConnectedException $e) {
+			return $this->notConnected($e);
 		} catch (Throwable $e) {
 			return new JSONResponse(['error' => $e->getMessage()], Http::STATUS_INTERNAL_SERVER_ERROR);
 		}

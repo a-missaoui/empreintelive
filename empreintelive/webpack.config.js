@@ -16,6 +16,9 @@ webpackConfig.entry = {
 	// Bundle charge dans l'app Files -> js/empreintelive-files.js
 	// (action « Reunion sur ce document » du menu contextuel).
 	files: path.join(__dirname, 'src', 'files.js'),
+	// Carte de reunion -> js/empreintelive-reference.js (Talk, Text, Deck...,
+	// chargee par ReferenceScriptListener sur RenderReferenceEvent).
+	reference: path.join(__dirname, 'src', 'reference.js'),
 }
 
 webpackConfig.resolve = {

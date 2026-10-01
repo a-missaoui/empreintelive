@@ -11,7 +11,14 @@ namespace OCA\EmpreinteLive\AppInfo;
 use OCA\EmpreinteLive\Listener\CalendarObjectListener;
 use OCA\EmpreinteLive\Listener\FilesScriptListener;
 use OCA\EmpreinteLive\Listener\FolderDeletedListener;
+use OCA\EmpreinteLive\Listener\MeetingBotListener;
 use OCA\EmpreinteLive\Listener\MeetingFramePolicyListener;
+use OCA\EmpreinteLive\Listener\ReferenceScriptListener;
+use OCA\EmpreinteLive\Listener\TalkEnabledListener;
+use OCA\EmpreinteLive\Reference\MeetingReferenceProvider;
+use OCA\EmpreinteLive\Search\MeetingSearchProvider;
+use OCA\EmpreinteLive\Talk\TalkBot;
+use OCP\App\Events\AppEnableEvent;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -19,6 +26,7 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 use OCP\Calendar\Events\CalendarObjectDeletedEvent;
 use OCP\Calendar\Events\CalendarObjectMovedToTrashEvent;
 use OCP\Calendar\Events\CalendarObjectUpdatedEvent;
+use OCP\Collaboration\Reference\RenderReferenceEvent;
 use OCP\Files\Events\Node\NodeDeletedEvent;
 use OCP\Security\CSP\AddContentSecurityPolicyEvent;
 use OCP\Security\FeaturePolicy\AddFeaturePolicyEvent;
@@ -68,6 +76,20 @@ class Application extends App implements IBootstrap {
 			'OCA\\Files\\Event\\LoadAdditionalScriptsEvent',
 			FilesScriptListener::class,
 		);
+
+		// Carte de reunion pour un lien EMPREINTE colle dans Talk, Text, Deck,
+		// Collectives ou un commentaire. Mecanisme du coeur : fonctionne sans Talk.
+		$context->registerReferenceProvider(MeetingReferenceProvider::class);
+		$context->registerEventListener(RenderReferenceEvent::class, ReferenceScriptListener::class);
+
+		// Reunions de l'utilisateur dans la recherche unifiee de Nextcloud.
+		$context->registerSearchProvider(MeetingSearchProvider::class);
+
+		// Bot Talk : commande /empreinte. Talk est optionnel, son evenement est
+		// nomme en chaine (voir TalkBot). Si Talk est active apres l'app, le bot
+		// est enregistre a ce moment-la.
+		$context->registerEventListener(TalkBot::INVOKE_EVENT, MeetingBotListener::class);
+		$context->registerEventListener(AppEnableEvent::class, TalkEnabledListener::class);
 	}
 
 	public function boot(IBootContext $context): void {

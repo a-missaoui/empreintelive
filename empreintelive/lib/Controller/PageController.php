@@ -18,7 +18,9 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Services\IInitialState;
+use OCP\App\IAppManager;
 use OCP\IRequest;
+use OCP\IUserSession;
 use OCP\Util;
 
 class PageController extends Controller {
@@ -26,6 +28,8 @@ class PageController extends Controller {
 		IRequest $request,
 		private IInitialState $initialState,
 		private MeetingDomainService $meetingDomains,
+		private IAppManager $appManager,
+		private IUserSession $userSession,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -41,6 +45,13 @@ class PageController extends Controller {
 		Util::addScript(Application::APP_ID, Application::APP_ID . '-main');
 		// Origines dont la page accepte un enregistrement envoye par l'iframe.
 		$this->initialState->provideInitialState('meeting-origins', $this->meetingDomains->domains());
+		// Boutons Talk (conversation de la reunion) : masques sans Talk, plutot que
+		// visibles et inoperants.
+		$user = $this->userSession->getUser();
+		$this->initialState->provideInitialState(
+			'talk-available',
+			$user !== null && $this->appManager->isEnabledForUser('spreed', $user),
+		);
 		return new TemplateResponse(Application::APP_ID, 'main');
 	}
 }

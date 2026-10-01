@@ -6,6 +6,9 @@
  * plusieurs écrans, et testable directement.
  */
 
+/** Durée par défaut d'une réunion sans heure de fin : une heure. */
+const DEFAULT_LENGTH_MS = 60 * 60 * 1000
+
 /** Formats convertis en diapositives par EMPREINTE (zone de dépôt du meet). */
 export const CONVERTIBLE = ['pdf', 'pptx', 'docx']
 
@@ -42,7 +45,25 @@ export function startOf(m) {
  * @return {Date|null}
  */
 export function endOf(m) {
-	return toDate(m?.dateEndDiffusion ?? m?.endTime ?? m?.end)
+	const end = toDate(m?.dateEndDiffusion ?? m?.endTime ?? m?.end)
+	const start = startOf(m)
+	// Une réunion créée sans heure de fin porte une fin égale à son début : on lui
+	// donne la durée par défaut, sinon elle serait « terminée » dès son début.
+	if (end && start && end.getTime() <= start.getTime()) {
+		return new Date(start.getTime() + DEFAULT_LENGTH_MS)
+	}
+	return end
+}
+
+/**
+ * Fin par défaut d'une réunion dont on ne connaît que le début : une heure, comme
+ * le bot Talk et l'événement d'agenda.
+ *
+ * @param {Date} start - Le début.
+ * @return {Date}
+ */
+export function defaultEnd(start) {
+	return new Date(start.getTime() + DEFAULT_LENGTH_MS)
 }
 
 /**
@@ -63,6 +84,57 @@ export function meetingStatus(m, now) {
 		return 'past'
 	}
 	return 'live'
+}
+
+/**
+ * Lien à partager avec les participants. Jamais le lien organisateur : les deux
+ * ne diffèrent que par leur jeton, et le lien organisateur donne les droits
+ * d'animation à quiconque l'ouvre.
+ *
+ * @param {object} m - La réunion, sous l'une des formes renvoyées par l'API.
+ * @return {string|null} Le lien participant, ou null s'il est inconnu.
+ */
+export function participantLink(m) {
+	return m?.participant_url ?? m?.participantUrl ?? null
+}
+
+/**
+ * « Aujourd'hui, 10:35 – 11:35 », « Demain, 09:00 – 10:00 »,
+ * « 18 sept. 2026, 10:35 – 11:35 ». Partagé par la liste des réunions et la
+ * carte de réunion.
+ *
+ * @param {object} m - La réunion.
+ * @param {number} now - Instant de référence, en millisecondes.
+ * @param {(app: string, text: string, vars?: object) => string} t - Traduction (translate de @nextcloud/l10n).
+ * @param {string} locale - Locale d'affichage (getCanonicalLocale()).
+ * @return {string} Le libellé, ou une chaîne vide.
+ */
+export function meetingWhen(m, now, t, locale) {
+	const start = startOf(m)
+	if (!start) {
+		return ''
+	}
+	const time = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit', hour12: false })
+	const end = endOf(m)
+	const range = end ? `${time.format(start)} – ${time.format(end)}` : time.format(start)
+
+	const day = new Date(start)
+	day.setHours(0, 0, 0, 0)
+	const today = new Date(now)
+	today.setHours(0, 0, 0, 0)
+	const diff = Math.round((day - today) / 86400000)
+
+	if (diff === 0) {
+		return t('empreintelive', 'Today, {range}', { range })
+	}
+	if (diff === 1) {
+		return t('empreintelive', 'Tomorrow, {range}', { range })
+	}
+	if (diff === -1) {
+		return t('empreintelive', 'Yesterday, {range}', { range })
+	}
+	const date = new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric' })
+	return `${date.format(start)}, ${range}`
 }
 
 /**

@@ -12,19 +12,22 @@ use OCA\EmpreinteLive\Exception\NotConnectedException;
 use OCA\EmpreinteLive\Service\EmpreinteApiService;
 use OCA\EmpreinteLive\Service\EmpreinteClient;
 use OCA\EmpreinteLive\Service\OAuthService;
+use OCP\Collaboration\Reference\IReferenceManager;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class EmpreinteApiServiceTest extends TestCase {
 	private EmpreinteClient&MockObject $client;
 	private OAuthService&MockObject $oauth;
+	private IReferenceManager&MockObject $references;
 	private EmpreinteApiService $api;
 
 	protected function setUp(): void {
 		$this->client = $this->createPartialMock(EmpreinteClient::class, ['request']);
 		$this->oauth = $this->createMock(OAuthService::class);
 		$this->oauth->method('getAuthorizationHeader')->willReturn('Bearer tok');
-		$this->api = new EmpreinteApiService($this->client, $this->oauth);
+		$this->references = $this->createMock(IReferenceManager::class);
+		$this->api = new EmpreinteApiService($this->client, $this->oauth, $this->references);
 	}
 
 	public function testCreateLiveNormalizesResponseAndMapsPayload(): void {
@@ -58,14 +61,28 @@ class EmpreinteApiServiceTest extends TestCase {
 
 	public function testDeleteLiveSucceedsOn2xx(): void {
 		$this->client->method('request')->willReturn(['status' => 204, 'body' => null, 'location' => null]);
+		$this->references->expects($this->once())->method('invalidateCache')->with('42');
 		$this->api->deleteLive('u', '42');
-		$this->addToAssertionCount(1);
 	}
 
 	public function testDeleteLiveThrowsWithApiMessage(): void {
 		$this->client->method('request')->willReturn(['status' => 500, 'body' => ['message' => 'boom'], 'location' => null]);
+		$this->references->expects($this->never())->method('invalidateCache');
 		$this->expectExceptionMessage('boom');
 		$this->api->deleteLive('u', '42');
+	}
+
+	public function testUpdateLiveInvalidatesMeetingCards(): void {
+		$this->client->method('request')->willReturn(['status' => 200, 'body' => ['data' => ['id' => 42]], 'location' => null]);
+		$this->references->expects($this->once())->method('invalidateCache')->with('42');
+		$this->api->updateLive('u', '42', ['title' => 'T']);
+	}
+
+	public function testFailedUpdateKeepsMeetingCards(): void {
+		$this->client->method('request')->willReturn(['status' => 500, 'body' => ['message' => 'boom'], 'location' => null]);
+		$this->references->expects($this->never())->method('invalidateCache');
+		$this->expectExceptionMessage('boom');
+		$this->api->updateLive('u', '42', ['title' => 'T']);
 	}
 
 	public function testAuthedRetriesAfterRefreshOn401(): void {

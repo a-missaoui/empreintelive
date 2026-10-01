@@ -7,10 +7,13 @@
 import { describe, expect, it } from 'vitest'
 import {
 	CONVERTIBLE,
+	defaultEnd,
 	endOf,
 	extensionOf,
 	isConvertible,
 	meetingStatus,
+	meetingWhen,
+	participantLink,
 	sortMeetings,
 	startOf,
 } from '../src/utils/meetings.js'
@@ -99,5 +102,73 @@ describe('tri de la liste', () => {
 		const input = [old, live]
 		sortMeetings(input, now)
 		expect(input.map((x) => x.id)).toEqual(['old', 'live'])
+	})
+})
+
+describe('meetingWhen', () => {
+	// Traduction factice : renvoie le texte source, variables substituées.
+	const t = (app, text, vars = {}) => text.replace(/\{(\w+)\}/g, (_, k) => vars[k])
+	const local = (y, mo, d, h, mi) => new Date(y, mo - 1, d, h, mi).toISOString()
+	const now = new Date(2026, 8, 30, 9, 0).getTime()
+
+	it('dit « Today » pour une réunion du jour, avec la plage horaire', () => {
+		const m = meeting(local(2026, 9, 30, 10, 35), local(2026, 9, 30, 11, 35))
+		expect(meetingWhen(m, now, t, 'fr-FR')).toBe('Today, 10:35 – 11:35')
+	})
+
+	it('dit « Tomorrow » et « Yesterday » pour les jours voisins', () => {
+		expect(meetingWhen(meeting(local(2026, 10, 1, 9, 0), null), now, t, 'fr-FR')).toBe('Tomorrow, 09:00')
+		expect(meetingWhen(meeting(local(2026, 9, 29, 9, 0), null), now, t, 'fr-FR')).toMatch(/^Yesterday, /)
+	})
+
+	it('affiche la date au-delà', () => {
+		const m = meeting(local(2026, 9, 18, 10, 35), local(2026, 9, 18, 11, 35))
+		expect(meetingWhen(m, now, t, 'fr-FR')).toBe('18 sept. 2026, 10:35 – 11:35')
+	})
+
+	it('lit aussi les clés start / end de la carte de réunion', () => {
+		const card = { start: local(2026, 9, 30, 10, 35), end: local(2026, 9, 30, 11, 35) }
+		expect(meetingWhen(card, now, t, 'fr-FR')).toBe('Today, 10:35 – 11:35')
+		expect(meetingStatus(card, now)).toBe('upcoming')
+	})
+
+	it('renvoie une chaîne vide sans date de début', () => {
+		expect(meetingWhen({}, now, t, 'fr-FR')).toBe('')
+	})
+})
+
+describe('participantLink', () => {
+	it('prend le lien participant, sous ses deux formes', () => {
+		expect(participantLink({ participant_url: 'P', admin_url: 'A' })).toBe('P')
+		expect(participantLink({ participantUrl: 'P', organiserUrl: 'A', url: 'A' })).toBe('P')
+	})
+
+	it('ne retombe jamais sur le lien organisateur', () => {
+		expect(participantLink({ admin_url: 'A', url: 'A', organiserUrl: 'A' })).toBeNull()
+		expect(participantLink(undefined)).toBeNull()
+	})
+})
+
+describe('réunion sans heure de fin', () => {
+	const start = '2026-10-01T13:41:00+01:00'
+
+	it('une fin égale au début vaut une heure par défaut', () => {
+		const m = meeting(start, start)
+		expect(endOf(m).getTime() - startOf(m).getTime()).toBe(3600000)
+	})
+
+	it("reste « en cours » pendant l'heure, puis « terminée »", () => {
+		const m = meeting(start, start)
+		expect(meetingStatus(m, at(start) + 60000)).toBe('live')
+		expect(meetingStatus(m, at(start) + 3600000 + 60000)).toBe('past')
+	})
+
+	it('ne touche pas une vraie heure de fin', () => {
+		const m = meeting(start, '2026-10-01T14:00:00+01:00')
+		expect(endOf(m).toISOString()).toBe(new Date('2026-10-01T14:00:00+01:00').toISOString())
+	})
+
+	it('defaultEnd ajoute une heure', () => {
+		expect(defaultEnd(new Date(start)).getTime()).toBe(at(start) + 3600000)
 	})
 })

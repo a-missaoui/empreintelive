@@ -75,6 +75,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextArea from '@nextcloud/vue/components/NcTextArea'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import api from '../services/api.js'
+import { defaultEnd } from '../utils/meetings.js'
 
 export default {
 	name: 'CreateMeeting',
@@ -87,7 +88,7 @@ export default {
 		NcSelect,
 	},
 
-	emits: ['created'],
+	emits: ['created', 'notConnected'],
 	data() {
 		return {
 			title: '',
@@ -164,16 +165,27 @@ export default {
 					description: this.description,
 					// L'API attend de l'ISO8601 UTC ; l'input datetime-local est en heure locale.
 					startTime: toIso(this.startTime),
-					endTime: toIso(this.endTime || this.startTime),
+					// Sans heure de fin : une heure, comme le bot Talk et l'agenda.
+					// Une fin égale au début donnerait une réunion de durée nulle.
+					endTime: this.endTime
+						? toIso(this.endTime)
+						: defaultEnd(new Date(this.startTime)).toISOString(),
 					attendees: this.participants.map((p) => p.email),
 				})
 				showSuccess(res?.eventCreated
 					? this.t('empreintelive', 'Video meeting created and added to your calendar.')
 					: this.t('empreintelive', 'Video meeting created.'))
 				this.reset()
-				this.$emit('created')
+				this.$emit('created', res?.data)
 			} catch (e) {
-				this.error = this.friendlyError(e?.response?.data?.error)
+				const data = e?.response?.data ?? {}
+				if (data.error === 'not_connected') {
+					// Compte refusé par EMPREINTE : le parent propose la connexion. Le
+					// formulaire garde sa saisie pour être renvoyé une fois connecté.
+					this.$emit('notConnected', data.message ?? '')
+					return
+				}
+				this.error = this.friendlyError(data.error)
 			} finally {
 				this.busy = false
 			}

@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.2.0 – 2026-10-02
+
+### Added
+- **Meeting cards.** A link to an EMPREINTE Live meeting pasted in Talk, Text, Deck, Collectives or a file comment is displayed as a card with a "Join" button. The meeting's creator sees its title, time and status (upcoming, in progress, ended), and joins from the EMPREINTE Live page, with the documents panel. Anyone else sees a card without details that opens the shared link. The organizer link is never shown to another user, and the creator is warned when the organizer link itself has been shared. Cards work without Talk, and update when the meeting is edited or deleted.
+- **Insert a meeting from the message box.** The Nextcloud link picker (the "/" or "+" menu in Talk, Text and other apps) offers "EMPREINTE Live": choose one of your upcoming meetings, or create one on the spot, and its participant link is inserted in the message, where it shows as a meeting card. Signing in to EMPREINTE is offered in place when needed.
+- **Meetings in the unified search.** Your EMPREINTE Live meetings can be found by title from the Nextcloud search, and open on the EMPREINTE Live page.
+- **EMPREINTE Live bot for Talk.** In a conversation where a moderator has enabled it (conversation settings → Bots), `/empreinte <title> [tomorrow|DD/MM] [14:30] [45min]` creates the meeting on behalf of its author, adds it to their calendar, and posts its participant link, shown as a meeting card. `/empreinte help` explains the syntax. The bot is set up by the app itself, on installation, on update, or when Talk is enabled later: no administrator command.
+- **Invite the members of a conversation.** The bot's answer links to the EMPREINTE Live page, which lists the conversation's members, all selected: one click sends them an invitation by email. Only the meeting's creator can invite, and only people actually in the conversation are listed.
+- **Talk conversation for a meeting.** From the meeting list, "Create a Talk conversation" opens a new conversation with the meeting link as its first message, and "Post in a conversation" shares the link in an existing one. These actions only appear when Talk is available.
+- **Clearer EMPREINTE Live page.** The connected account and the "Disconnect account" button are shown at the top of the page instead of below the whole meeting list. Ended meetings are folded under "Show ended meetings", so meetings in progress and upcoming ones come first.
+
+### Fixed
+- **"Copy link" copied the organizer link.** In the meeting list and after creating a meeting from Files, "Copy link" copied the link that gives organizer rights to anyone who opens it. It now copies the participant link, which is the one to share.
+- **A meeting created without an end time had no duration.** Its end was set to its start, so it showed as "13:41 – 13:41" and counted as ended one minute after starting. It now lasts one hour by default, like meetings created by the Talk bot, and existing meetings without a duration are displayed the same way.
+- **An account rejected by EMPREINTE showed a generic error on the EMPREINTE Live page.** When EMPREINTE no longer accepts the account (deleted account, expired token), the meeting list and the creation form only said that the request failed. They now show the EMPREINTE login form with the reason given by EMPREINTE, as the Files dialog does since 1.1.3. The link picker does the same, and keeps the meeting being created as it was filled in.
+
+### Compatibility
+- Verified on Nextcloud 32, 33 and 34 with Talk 22, 23 and 24, with and without Talk, on a fresh installation and on an upgrade from 1.1.3, with no administrator configuration.
+
+### Notes
+- Talk remains optional: without it, meeting cards, the link picker and the search work in Text, Deck and the other apps, and nothing related to Talk is shown.
+- The bot receives the messages of the conversations it is enabled in, like any Talk bot, and only reacts to `/empreinte`. Message contents are never stored or logged.
+- A meeting's details and its organizer link are only ever shown to its creator.
+
 ## 1.1.3 – 2026-09-29
 
 ### Fixed

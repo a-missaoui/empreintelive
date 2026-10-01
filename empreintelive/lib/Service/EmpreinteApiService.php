@@ -13,6 +13,7 @@ declare(strict_types=1);
 namespace OCA\EmpreinteLive\Service;
 
 use OCA\EmpreinteLive\Exception\NotConnectedException;
+use OCP\Collaboration\Reference\IReferenceManager;
 use RuntimeException;
 use function is_array;
 
@@ -20,6 +21,7 @@ class EmpreinteApiService {
 	public function __construct(
 		private EmpreinteClient $client,
 		private OAuthService $oauth,
+		private IReferenceManager $references,
 	) {
 	}
 
@@ -83,6 +85,9 @@ class EmpreinteApiService {
 		if (!$this->client->isOk($res['status'])) {
 			throw new RuntimeException($this->msg($res, 'Echec de la mise a jour de la reunion'));
 		}
+		// Les cartes de cette reunion (tous lecteurs) reprennent le nouveau titre et
+		// les nouveaux horaires.
+		$this->references->invalidateCache($liveId);
 		return $this->normalizeLive($res['body']);
 	}
 
@@ -91,6 +96,7 @@ class EmpreinteApiService {
 		if (!$this->client->isOk($res['status'])) {
 			throw new RuntimeException($this->msg($res, 'Echec de la suppression de la reunion'));
 		}
+		$this->references->invalidateCache($liveId);
 	}
 
 	/**

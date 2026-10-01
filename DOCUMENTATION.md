@@ -72,6 +72,14 @@ Layered design: *thin* Controllers → *business* Services → HTTP client.
 | `Service/SyncGuard.php` | Per-request flag preventing the reconciliation prune from deleting EMPREINTE Lives. See §2.5. |
 | `Listener/CalendarObjectListener.php` | Syncs the Live when the event is trashed, deleted **or updated**. |
 | `Controller/PageController.php` | Renders the full-page "EMPREINTE Live" app (app-menu / top-bar icon). Loads the Vue bundle. |
+| `Reference/MeetingReferenceProvider.php` | Meeting cards and the "EMPREINTE Live" entry of the link picker (§2.11). |
+| `Search/MeetingSearchProvider.php` | The user's meetings in the Nextcloud unified search. |
+| `Service/MeetingAccess.php` | A meeting is only detailed or acted upon for its creator (§2.11). |
+| `Service/MemberInvitationService.php` | Invites the members of a Talk conversation to a meeting. |
+| `Talk/TalkBot.php` | Registers the Talk bot, without administrator command (§2.11). |
+| `Talk/MeetingCommand.php` | Reads `/empreinte <title> [date] [time] [length]`. |
+| `Talk/MeetingBotHandler.php` | Answers the command on behalf of its author. |
+| `Listener/MeetingBotListener.php`, `Listener/TalkEnabledListener.php`, `Listener/ReferenceScriptListener.php` | Bot messages, Talk enabled after the app, card script. |
 
 **Internal endpoints** (`appinfo/routes.php`, prefix `/apps/empreintelive`):
 
@@ -89,6 +97,7 @@ Layered design: *thin* Controllers → *business* Services → HTTP client.
 | POST | `/lives`          | Create a meeting |
 | PUT  | `/lives/{id}`     | Update |
 | DELETE | `/lives/{id}`   | Delete |
+| POST | `/lives/{id}/members` | Invite the members of a Talk conversation (creator only) |
 | GET  | `/attendees/search` | Participant autocomplete (contacts / users) |
 | POST | `/proxy`          | Generic relay |
 
@@ -108,7 +117,11 @@ Stack: **Vue 3** + `@nextcloud/vue` 9 + `@nextcloud/webpack-vue-config` 7.
 | `src/components/ConnectionForm.vue` | Login / register tabs → chains `login`, `authorize`, consent, then `connect`. |
 | `src/components/ConsentDialog.vue` | OAuth consent screen: shows the permissions (scopes), emits `approve` / `cancel`. |
 | `src/components/CreateMeeting.vue` | Creation form (local time → ISO8601 UTC) + participant autocomplete. |
-| `src/components/MeetingList.vue` | List + join + delete (defensive access to API fields). |
+| `src/components/MeetingList.vue` | List + join + delete (defensive access to API fields); Talk actions when Talk is available. |
+| `src/reference.js` | Meeting card widget and link-picker entry, loaded wherever Nextcloud renders links. |
+| `src/components/MeetingReferenceWidget.vue`, `MeetingPicker.vue` | The card, and the picker window (loaded on demand). |
+| `src/components/InviteMembersDialog.vue`, `ShareInConversationDialog.vue` | Invite a conversation's members; post a meeting link in a conversation. |
+| `src/services/talk.js`, `src/utils/talk.js` | Talk's public API, called on behalf of the user. |
 
 The build produces `js/empreintelive-main.js`, loaded by `PageController` via
 `Util::addScript` and mounted in `templates/main.php`.
@@ -288,6 +301,67 @@ Every message carries `protocol: 'empreinte-live-recording'` and `version: 1`.
 - **Upload.** `src/services/recordingUpload.js` uses a single `PUT` up to 10 MB, and Nextcloud chunked upload above that (`MKCOL`, numbered chunks, `MOVE .file`). An existing file is never overwritten (`If-None-Match: *` / `Overwrite: F`): a 412 response retries with `name (2).webm` and so on. Leaving the page during an upload asks for confirmation.
 - **Studio side.** The change in the studio is `components/empreinte-custom/utils/recordingHost.ts`, called from `ControlBar.tsx`. Recording itself doesn't change.
 
+### 2.11 Talk, meeting cards and the link picker
+
+Talk is **optional**. Nothing in the app requires it, and its classes are never
+imported: the three Talk events the bot uses are named as strings and checked with
+`class_exists()`, like the Files event.
+
+**Meeting cards and the link picker are a Nextcloud core mechanism**, not a Talk
+one (`OCP\Collaboration\Reference`). One implementation serves Talk, Text, Deck,
+Collectives and file comments, with or without Talk.
+
+- **Recognised links**: the meeting domains (`meeting_domains`) and the app page
+  with `?live=<id>`. A `room=` parameter on any other host is ignored.
+- **Who sees what**: the EMPREINTE API returns a meeting to any authenticated
+  account that knows its id, so a successful answer is not an access right.
+  `MeetingAccess` compares the meeting's `created_by` with the connected account:
+  only the creator gets the title, time and status, and joins from the app page.
+  Everyone else gets a card without details that opens the shared link. The
+  organizer link never leaves the server for anyone but the creator.
+- **Cache**: Nextcloud caches a card by prefix and key only. The prefix is the
+  meeting id, so editing or deleting a meeting clears all its cards
+  (`IReferenceManager::invalidateCache`); the key is the reader **and** the link,
+  since a participant link and an organizer link of the same meeting do not give
+  the same card. The status (upcoming, in progress, ended) is computed in the
+  browser from the dates, so a cached card never shows a stale status.
+- **Link picker**: the entry is only listed when a custom picker element is
+  registered in the browser. That element inserts the **participant link**,
+  always. It is loaded on demand, so the script loaded on every Talk and Text page
+  stays small.
+
+**The bot** uses Talk's in-process app bots: the URL `nextcloudapp://empreintelive`
+makes Talk deliver messages as a PHP event (`BotInvokeEvent`), with no HTTP call,
+public URL or signature. It is registered by repair steps on installation and
+after each update, by a listener when Talk is enabled later, and removed on
+uninstallation. Moderators enable it per conversation (conversation settings →
+Bots).
+
+- `/empreinte <title> [tomorrow|DD/MM[/YYYY]] [HH:MM|14h30|14h] [45min]`, options
+  in any order at the end. The length is only ever written in minutes, so `10h`
+  is always a start time. Without a time the meeting starts now; with a date only,
+  at 09:00; a time already past today means tomorrow. Default length: one hour.
+  Dates are read in the author's time zone.
+- Only Nextcloud users with a connected EMPREINTE account can create meetings;
+  guests, federated users and unconnected users get an explanation.
+- The answer holds the participant link (shown as a card) and a link to the app
+  page, `?live=<id>&talk=<token>`, to invite the conversation's members.
+- The bot receives every message of the conversations it is enabled in; it only
+  reacts to `/empreinte` and never logs message contents.
+
+**Conversation members** are read by the browser from Talk's public API
+(`…/room/{token}/participants`), with the user's own Talk permissions: they are the
+conversation's real members, and email guests' addresses are only visible to
+moderators, as in Talk. A mention is not used, since it can name someone outside
+the conversation. The server resolves Nextcloud accounts to email addresses
+without returning them, and only for the meeting's creator.
+
+**Conversation actions** ("Create a Talk conversation", "Post in a conversation")
+also go through Talk's public API on behalf of the user, so Talk's own rules
+apply: who may create conversations, read-only conversations, chat permission.
+They only appear when Talk is enabled for the user (`talk-available` initial
+state).
+
 ## 3. OAuth flow (important)
 
 ⚠️ **A tricky point to know.** The EMPREINTE API has **two steps**:
@@ -404,7 +478,7 @@ docker compose exec --user www-data nextcloud php occ config:app:set \
 | Layer | Tool | Files | Command |
 |---|---|---|---|
 | Backend PHP | PHPUnit 10 | `tests/Unit/**` (tokens, OAuth, EMPREINTE API, calendar event, contact search, meeting id, listeners, folder link, documents, shares, URL signature) | see `empreintelive/tests/README.md` |
-| Frontend JS | Vitest | `tests-js/api.spec.js` | `npm run test:unit` |
+| Frontend JS | Vitest | `tests-js/*.spec.js` (API, meetings, recordings, Talk) | `npm run test:unit` |
 
 **PHP** (no PHP on the host → run inside the container):
 
@@ -451,13 +525,20 @@ Unit tests open **no** network connection (everything is mocked).
   and can be removed from it.
 - **Share links**: created and copied from the panel, for one file or for the
   whole folder, with read-only or editable access, password and expiration.
+- **Meeting cards** in Talk, Text, Deck, Collectives and file comments, detailed
+  for the creator only (§2.11).
+- **Link picker**: insert an upcoming meeting, or create one, from the message box.
+- **Talk bot**: `/empreinte` creates a meeting from a conversation and posts its
+  link; members are invited in one click (§2.11).
+- **Talk conversation** for a meeting, or its link posted in a conversation.
+- **Unified search**: meetings found by title.
 - **Unit tests**: PHPUnit and Vitest, no network access.
 
 ---
 
 - **Translations**: English and French.
-- **Compatibility**: verified on Nextcloud 32, 33 and 34, including the upgrade
-  from 1.0.1.
+- **Compatibility**: verified on Nextcloud 32, 33 and 34 with Talk 22, 23 and 24,
+  with and without Talk, including the upgrade from 1.1.3.
 
 ## 7. Deployment
 

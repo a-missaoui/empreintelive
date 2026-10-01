@@ -29,7 +29,7 @@
 
 		<ul v-else class="ec-list__items">
 			<li
-				v-for="m in sortedMeetings"
+				v-for="m in visibleMeetings"
 				:key="meetingId(m)"
 				class="ec-item"
 				:class="'ec-item--' + status(m)">
@@ -68,7 +68,7 @@
 							{{ t('empreintelive', 'Open in a new tab') }}
 						</NcActionLink>
 						<NcActionButton
-							v-if="meetingUrl(m)"
+							v-if="participantLink(m)"
 							:closeAfterClick="true"
 							@click="copyLink(m)">
 							<template #icon>
@@ -76,6 +76,20 @@
 							</template>
 							{{ t('empreintelive', 'Copy link') }}
 						</NcActionButton>
+						<template v-if="talkAvailable && participantLink(m)">
+							<NcActionButton :closeAfterClick="true" @click="createConversation(m)">
+								<template #icon>
+									<ChatPlus :size="20" />
+								</template>
+								{{ t('empreintelive', 'Create a Talk conversation') }}
+							</NcActionButton>
+							<NcActionButton :closeAfterClick="true" @click="sharing = participantLink(m)">
+								<template #icon>
+									<Send :size="20" />
+								</template>
+								{{ t('empreintelive', 'Post in a conversation') }}
+							</NcActionButton>
+						</template>
 						<NcActionSeparator />
 						<NcActionButton :closeAfterClick="true" @click="confirmRemove(m)">
 							<template #icon>
@@ -87,12 +101,41 @@
 				</div>
 			</li>
 		</ul>
+
+		<p v-if="meetings.length && !visibleMeetings.length" class="ec-list__none">
+			{{ t('empreintelive', 'No upcoming meetings') }}
+		</p>
+
+		<!--
+			Terminées repliées : la liste reste courte, et ce qu'on cherche (en
+			cours, à venir) est en haut. Masqué s'il n'y en a aucune.
+		-->
+		<NcButton
+			v-if="pastMeetings.length"
+			variant="tertiary"
+			class="ec-list__past-toggle"
+			@click="showPast = !showPast">
+			<template #icon>
+				<ChevronUp v-if="showPast" :size="20" />
+				<ChevronDown v-else :size="20" />
+			</template>
+			{{ showPast
+				? t('empreintelive', 'Hide ended meetings')
+				: n('empreintelive', 'Show %n ended meeting', 'Show %n ended meetings', pastMeetings.length) }}
+		</NcButton>
+
+		<ShareInConversationDialog
+			v-if="sharing"
+			:link="sharing"
+			@close="sharing = null" />
 	</div>
 </template>
 
 <script>
 import { showConfirmation, showError, showSuccess } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 import { getCanonicalLocale } from '@nextcloud/l10n'
+import { generateUrl } from '@nextcloud/router'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import NcActionLink from '@nextcloud/vue/components/NcActionLink'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -100,13 +143,19 @@ import NcActionSeparator from '@nextcloud/vue/components/NcActionSeparator'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcEmptyContent from '@nextcloud/vue/components/NcEmptyContent'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
+import ChatPlus from 'vue-material-design-icons/ChatPlus.vue'
+import ChevronDown from 'vue-material-design-icons/ChevronDown.vue'
+import ChevronUp from 'vue-material-design-icons/ChevronUp.vue'
 import ContentCopy from 'vue-material-design-icons/ContentCopy.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import OpenInNew from 'vue-material-design-icons/OpenInNew.vue'
 import Refresh from 'vue-material-design-icons/Refresh.vue'
+import Send from 'vue-material-design-icons/Send.vue'
 import VideoIcon from 'vue-material-design-icons/Video.vue'
+import ShareInConversationDialog from './ShareInConversationDialog.vue'
 import api from '../services/api.js'
-import { endOf, meetingStatus, sortMeetings, startOf } from '../utils/meetings.js'
+import talk from '../services/talk.js'
+import { endOf, meetingStatus, meetingWhen, participantLink, sortMeetings, startOf } from '../utils/meetings.js'
 
 export default {
 	name: 'MeetingList',
@@ -116,16 +165,21 @@ export default {
 		NcActions,
 		NcActionSeparator,
 		NcButton,
+		ChatPlus,
+		ChevronDown,
+		ChevronUp,
 		ContentCopy,
 		NcLoadingIcon,
 		NcEmptyContent,
 		Refresh,
+		Send,
+		ShareInConversationDialog,
 		Delete,
 		VideoIcon,
 		OpenInNew,
 	},
 
-	emits: ['open'],
+	emits: ['open', 'notConnected'],
 
 	data() {
 		return {
@@ -135,6 +189,12 @@ export default {
 			// « terminée » sans qu'on recharge la page.
 			now: Date.now(),
 			clock: null,
+			// Talk activé pour l'utilisateur : sans lui, aucun bouton Talk.
+			talkAvailable: loadState('empreintelive', 'talk-available', false),
+			// Lien participant en cours de publication dans une conversation.
+			sharing: null,
+			// Réunions terminées dépliées.
+			showPast: false,
 		}
 	},
 
@@ -145,6 +205,16 @@ export default {
 		 */
 		sortedMeetings() {
 			return sortMeetings(this.meetings, this.now)
+		},
+
+		pastMeetings() {
+			return this.sortedMeetings.filter((m) => meetingStatus(m, this.now) === 'past')
+		},
+
+		visibleMeetings() {
+			return this.showPast
+				? this.sortedMeetings
+				: this.sortedMeetings.filter((m) => meetingStatus(m, this.now) !== 'past')
 		},
 	},
 
@@ -164,7 +234,11 @@ export default {
 			this.loading = true
 			try {
 				this.meetings = await api.listMeetings()
-			} catch {
+			} catch (e) {
+				if (e?.response?.data?.error === 'not_connected') {
+					this.$emit('notConnected', e.response.data.message ?? '')
+					return
+				}
 				showError(this.t('empreintelive', 'Could not load the video meetings.'))
 			} finally {
 				this.loading = false
@@ -192,10 +266,29 @@ export default {
 
 		async copyLink(m) {
 			try {
-				await navigator.clipboard.writeText(this.meetingUrl(m))
+				// Lien participant : c'est le lien qu'on colle dans un message ou une
+				// conversation, il ne doit pas donner les droits d'organisateur.
+				await navigator.clipboard.writeText(participantLink(m))
 				showSuccess(this.t('empreintelive', 'Link copied.'))
 			} catch {
 				showError(this.t('empreintelive', 'Could not copy.'))
+			}
+		},
+
+		/**
+		 * Conversation Talk de la réunion : créée au nom de l'utilisateur (Talk
+		 * applique ses restrictions de création), avec le lien participant en
+		 * premier message, puis ouverte dans un nouvel onglet.
+		 *
+		 * @param {object} m - La visioconférence.
+		 */
+		async createConversation(m) {
+			try {
+				const room = await talk.createRoom(this.meetingTitle(m))
+				await talk.postMessage(room.token, participantLink(m))
+				window.open(generateUrl('/call/{token}', { token: room.token }), '_blank')
+			} catch {
+				showError(this.t('empreintelive', 'The Talk conversation could not be created.'))
 			}
 		},
 
@@ -222,6 +315,10 @@ export default {
 			return m?.title ?? m?.name ?? this.t('empreintelive', 'Untitled')
 		},
 
+		participantLink(m) {
+			return participantLink(m)
+		},
+
 		meetingUrl(m) {
 			return m?.url ?? m?.liveUrl ?? m?.join_url ?? m?.participant_url ?? null
 		},
@@ -238,39 +335,8 @@ export default {
 			return meetingStatus(m, this.now)
 		},
 
-		/**
-		 * « Aujourd'hui, 10:35 – 11:35 », « Demain, 09:00 – 10:00 »,
-		 * « 18 sept. 2026, 10:35 – 11:35 ».
-		 *
-		 * @param {object} m - La visioconférence.
-		 * @return {string} Le libellé, ou une chaîne vide.
-		 */
 		meetingWhen(m) {
-			const start = this.startOf(m)
-			if (!start) {
-				return ''
-			}
-			const time = new Intl.DateTimeFormat(getCanonicalLocale(), { hour: '2-digit', minute: '2-digit', hour12: false })
-			const end = this.endOf(m)
-			const range = end ? `${time.format(start)} – ${time.format(end)}` : time.format(start)
-
-			const day = new Date(start)
-			day.setHours(0, 0, 0, 0)
-			const today = new Date(this.now)
-			today.setHours(0, 0, 0, 0)
-			const diff = Math.round((day - today) / 86400000)
-
-			if (diff === 0) {
-				return this.t('empreintelive', 'Today, {range}', { range })
-			}
-			if (diff === 1) {
-				return this.t('empreintelive', 'Tomorrow, {range}', { range })
-			}
-			if (diff === -1) {
-				return this.t('empreintelive', 'Yesterday, {range}', { range })
-			}
-			const date = new Intl.DateTimeFormat(getCanonicalLocale(), { day: 'numeric', month: 'short', year: 'numeric' })
-			return `${date.format(start)}, ${range}`
+			return meetingWhen(m, this.now, this.t, getCanonicalLocale())
 		},
 	},
 }
@@ -288,6 +354,15 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 	margin-bottom: 4px;
+}
+
+.ec-list__none {
+	margin: 8px 0;
+	color: var(--color-text-maxcontrast);
+}
+
+.ec-list__past-toggle {
+	margin-top: 8px;
 }
 
 .ec-list__items {

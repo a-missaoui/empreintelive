@@ -43,7 +43,13 @@ class OAuthController extends Controller {
 
 	#[NoAdminRequired]
 	public function status(): JSONResponse {
-		return new JSONResponse(['connected' => $this->tokenService->hasScopedToken($this->userId())]);
+		$userId = $this->userId();
+		$connected = $this->tokenService->hasScopedToken($userId);
+		return new JSONResponse([
+			'connected' => $connected,
+			// Compte affiche en tete de page, a cote de « Deconnecter ».
+			'email' => $connected ? $this->oauthService->getAccountEmail($userId) : '',
+		]);
 	}
 
 	#[NoAdminRequired]

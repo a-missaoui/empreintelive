@@ -116,6 +116,7 @@ import NcSelect from '@nextcloud/vue/components/NcSelect'
 import NcTextField from '@nextcloud/vue/components/NcTextField'
 import ConnectionForm from './ConnectionForm.vue'
 import api from '../services/api.js'
+import { participantLink } from '../utils/meetings.js'
 
 /**
  * Format attendu par les champs datetime-local : « AAAA-MM-JJTHH:MM ».
@@ -169,9 +170,10 @@ export default {
 	},
 
 	computed: {
+		// Lien participant : c'est celui qu'on partage. Le bouton « Ouvrir la
+		// réunion » passe par la page de l'app, en organisateur.
 		meetingUrl() {
-			const live = this.created?.data ?? {}
-			return live.admin_url ?? live.organiserUrl ?? live.participant_url ?? live.participantUrl ?? null
+			return participantLink(this.created?.data)
 		},
 	},
 

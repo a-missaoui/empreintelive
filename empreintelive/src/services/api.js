@@ -15,7 +15,7 @@ export default {
 	// --- OAuth / connexion ---
 	async status() {
 		const { data } = await axios.get(url('/oauth/status'))
-		return data // { connected: bool }
+		return data // { connected: bool, email: string }
 	},
 	async register({ email, password, name }) {
 		const { data } = await axios.post(url('/oauth/register'), { email, password, name })
@@ -57,6 +57,17 @@ export default {
 	async updateLive(id, payload) {
 		const { data } = await axios.put(url('/lives/' + encodeURIComponent(id)), payload)
 		return data.data ?? data
+	},
+	/**
+	 * Invite les membres d'une conversation Talk à une réunion.
+	 *
+	 * @param {string} id - Identifiant de la réunion.
+	 * @param {{ userIds: string[], emails: string[] }} members - Membres du salon.
+	 * @return {Promise<{ invited: number, withoutEmail: number }>}
+	 */
+	async inviteMembers(id, { userIds, emails }) {
+		const { data } = await axios.post(url(`/lives/${encodeURIComponent(id)}/members`), { userIds, emails })
+		return data
 	},
 	async deleteLive(id) {
 		const { data } = await axios.delete(url('/lives/' + encodeURIComponent(id)))

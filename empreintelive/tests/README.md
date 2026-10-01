@@ -17,6 +17,23 @@ les autoloaders `OCP\*` / `Sabre\*` + des mocks).
   `OCP\Contacts` (mapping nom / email, dédoublonnage).
 - `Unit/Service/EmpreinteLiveIdTest.php` — extraction du `liveId` depuis un `.ics`
   (`X-EMPREINTE-*`, `LOCATION`, `DESCRIPTION`), cas sans identifiant.
+- `Unit/Reference/MeetingReferenceProviderTest.php` — carte de réunion : liens
+  reconnus (domaines de réunion, page de l'app) et ignorés, carte détaillée pour
+  le créateur seul, carte minimale sinon, lien organisateur jamais exposé, cache
+  cloisonné par lecteur et par lien.
+- `Unit/Search/MeetingSearchProviderTest.php` — recherche unifiée : réunions
+  trouvées par leur titre, plus récentes d'abord, ouvertes sur la page de l'app ;
+  rien sans compte connecté ni en cas de panne EMPREINTE.
+- `Unit/Service/MeetingAccessTest.php` — une réunion n'est détaillée ou
+  modifiable que pour son créateur, même si l'API EMPREINTE répond à un autre.
+- `Unit/Service/MemberInvitationServiceTest.php` — invitation des membres d'une
+  conversation : créateur seul, auteur et membres sans adresse ignorés.
+- `Unit/Talk/MeetingCommandTest.php` — lecture de `/empreinte` : titre, date,
+  heure, durée, mentions, aide, fuseau de l'auteur.
+- `Unit/Talk/MeetingBotHandlerTest.php` — réponse du bot : création au nom de
+  l'auteur, lien participant et lien d'invitation, invités et comptes fédérés
+  refusés, compte non connecté, messages ordinaires ignorés et jamais journalisés.
+- `Unit/Talk/TalkBotTest.php` — sans Talk, aucun enregistrement ni réglage.
 - `Unit/Listener/CalendarObjectListenerTest.php` — dispatch selon l'événement
   (corbeille / suppression / édition), `userId` depuis le `principaluri`,
   événement non concerné ignoré.

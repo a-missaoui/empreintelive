@@ -28,6 +28,8 @@ return [
 		['name' => 'live#create', 'url' => '/lives', 'verb' => 'POST'],
 		['name' => 'live#update', 'url' => '/lives/{id}', 'verb' => 'PUT'],
 		['name' => 'live#destroy', 'url' => '/lives/{id}', 'verb' => 'DELETE'],
+		// Invitation des membres d'une conversation Talk (lien publie par le bot).
+		['name' => 'live#inviteMembers', 'url' => '/lives/{id}/members', 'verb' => 'POST'],
 
 		// --- Autocompletion des participants ---
 		['name' => 'attendee#search', 'url' => '/attendees/search', 'verb' => 'GET'],

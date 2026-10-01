@@ -26,6 +26,11 @@ It allows users to schedule, manage, and join video meetings directly from their
 - 📁 Documents panel beside the meeting: associate a Nextcloud folder, browse and preview it without leaving the page
 - 🔗 Share links for one file or the whole folder, with read-only or editable access, password and expiration
 - ⏺️ Meeting recordings saved to the meeting's folder in Nextcloud Files
+- 💬 Meeting cards: a meeting link pasted in Talk, Text, Deck, Collectives or a file comment shows its title, time and status, with a "Join" button — details for the creator only
+- ➕ Insert a meeting from the message box: "EMPREINTE Live" in the Nextcloud link picker lists upcoming meetings or creates one, and inserts its participant link
+- 🤖 Talk bot: `/empreinte <title> [tomorrow|DD/MM] [14:30] [45min]` creates the meeting from a conversation and posts its link; the conversation's members are invited in one click
+- 🗨️ Create a Talk conversation for a meeting, or post its link in an existing one
+- 🔎 Meetings found from the Nextcloud unified search
 - 🚀 Native Nextcloud integration using official OCP APIs and events
 
 ---
@@ -36,6 +41,7 @@ It allows users to schedule, manage, and join video meetings directly from their
 - PHP **8.1 to 8.5**
 - Official **Nextcloud Calendar** application installed and enabled
 - An active **EMPREINTE Live** account
+- Optional: **Nextcloud Talk**, for the bot and the conversation actions. Without it, everything else works unchanged
 
 ---
 

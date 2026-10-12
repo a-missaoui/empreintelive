@@ -36,6 +36,15 @@ class TalkBot {
 
 	private const SECRET_KEY = 'talk_bot_secret';
 
+	/**
+	 * Affichee aux moderateurs dans Parametres de la conversation > Bots. Talk
+	 * enregistre ce texte une fois pour tout le serveur, sans traduction par
+	 * utilisateur : il est donc donne dans les deux langues de l'app. Talk le met
+	 * a jour a chaque enregistrement, donc a chaque mise a jour de l'app.
+	 */
+	public const DESCRIPTION = 'Create an EMPREINTE Live meeting from the conversation: /empreinte <title> (/empreinte help)'
+		. ' — Créer une réunion EMPREINTE Live depuis la conversation : /empreinte <titre> (/empreinte aide)';
+
 	public function __construct(
 		private IEventDispatcher $dispatcher,
 		private IAppConfig $appConfig,
@@ -55,8 +64,7 @@ class TalkBot {
 			'EMPREINTE Live',
 			$this->secret(),
 			self::URL,
-			// Affiche aux moderateurs dans les parametres du salon.
-			'Create an EMPREINTE Live meeting from the conversation: /empreinte <title>',
+			self::DESCRIPTION,
 		));
 		return true;
 	}

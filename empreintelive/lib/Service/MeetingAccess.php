@@ -7,10 +7,9 @@ declare(strict_types=1);
  *
  * Reunion de l'utilisateur, ou rien.
  *
- * L'API EMPREINTE renvoie une reunion a tout compte authentifie qui en connait
- * l'identifiant : son succes ne vaut pas droit d'acces. L'app ne donne donc le
- * detail d'une reunion, ou n'agit dessus, que si le compte EMPREINTE connecte en
- * est le createur. Partage par la carte de reunion et par les invitations.
+ * L'app ne donne le detail d'une reunion, ou n'agit dessus, que si le compte
+ * EMPREINTE connecte en est le createur. Partage par la carte de reunion et par
+ * les invitations.
  */
 
 namespace OCA\EmpreinteLive\Service;

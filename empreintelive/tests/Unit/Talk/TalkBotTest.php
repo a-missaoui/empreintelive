@@ -33,6 +33,15 @@ class TalkBotTest extends TestCase {
 		$this->assertFalse($bot->unregister());
 	}
 
+	public function testDescriptionGivesTheCommandInBothLanguagesWithinTalksLimit(): void {
+		$this->assertStringContainsString('/empreinte <title>', TalkBot::DESCRIPTION);
+		$this->assertStringContainsString('/empreinte <titre>', TalkBot::DESCRIPTION);
+		$this->assertStringContainsString('/empreinte help', TalkBot::DESCRIPTION);
+		$this->assertStringContainsString('/empreinte aide', TalkBot::DESCRIPTION);
+		// Talk refuse une description de plus de 4000 caracteres.
+		$this->assertLessThan(4000, strlen(TalkBot::DESCRIPTION));
+	}
+
 	public function testUsesAnInProcessAppUrl(): void {
 		$this->assertSame('nextcloudapp://empreintelive', TalkBot::URL);
 	}

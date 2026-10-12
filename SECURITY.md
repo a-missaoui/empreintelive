@@ -7,7 +7,7 @@ Security fixes are provided for the latest released version of
 
 | Version | Supported |
 | ------- | --------- |
-| 1.0.x   | ✅        |
+| 1.2.x   | ✅        |
 
 ## Reporting a vulnerability
 

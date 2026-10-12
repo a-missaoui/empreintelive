@@ -5,6 +5,16 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.2.1 – 2026-10-12
+
+### Changed
+- **The Talk bot is easier to find.** When Talk is available, the EMPREINTE Live page explains how a moderator enables the bot in a conversation and which command to type. The note can be hidden once read.
+- **Bot description in English and French.** The description shown to moderators under Conversation settings → Bots now gives the command in both languages, and mentions `/empreinte help`. It is updated by the upgrade; bots already enabled in conversations stay enabled.
+- **App Store description reorganised.** The features are grouped by where meetings start: Talk, Files, Calendar, then the app itself and security.
+
+### Security
+- **Unused relay endpoint removed.** `/apps/empreintelive/proxy`, left over from an earlier version and no longer called by the app, let a logged-in user make the server send requests to a host of their choice. It is removed.
+
 ## 1.2.0 – 2026-10-02
 
 ### Added

@@ -53,6 +53,9 @@
 						</NcButton>
 					</div>
 
+					<!-- Le bot Talk existe mais rien ne l'annonce : on le dit ici. -->
+					<TalkBotHint v-if="talkAvailable" />
+
 					<div class="ec-grid">
 						<CreateMeeting @created="refreshMeetings" @notConnected="onRejected" />
 						<MeetingList
@@ -68,6 +71,7 @@
 
 <script>
 import { showError } from '@nextcloud/dialogs'
+import { loadState } from '@nextcloud/initial-state'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcLoadingIcon from '@nextcloud/vue/components/NcLoadingIcon'
 import NcNoteCard from '@nextcloud/vue/components/NcNoteCard'
@@ -79,6 +83,7 @@ import CreateMeeting from '../components/CreateMeeting.vue'
 import InviteMembersDialog from '../components/InviteMembersDialog.vue'
 import MeetingList from '../components/MeetingList.vue'
 import MeetingRoom from '../components/MeetingRoom.vue'
+import TalkBotHint from '../components/TalkBotHint.vue'
 import api from '../services/api.js'
 
 export default {
@@ -95,6 +100,7 @@ export default {
 		InviteMembersDialog,
 		MeetingList,
 		MeetingRoom,
+		TalkBotHint,
 	},
 
 	data() {
@@ -109,6 +115,8 @@ export default {
 			connectionReason: '',
 			// Adresse du compte EMPREINTE connecté.
 			accountEmail: '',
+			// Talk activé pour l'utilisateur : sans lui, aucune mention du bot.
+			talkAvailable: loadState('empreintelive', 'talk-available', false),
 		}
 	},
 

@@ -13,8 +13,7 @@ declare(strict_types=1);
  * en adresses, sans jamais les renvoyer au navigateur : l'utilisateur n'obtient
  * pas plus que ce que l'autocompletion des participants lui permet deja.
  *
- * Seul le createur de la reunion peut inviter (MeetingAccess) : l'API EMPREINTE
- * ne le verifie pas elle-meme.
+ * Seul le createur de la reunion peut inviter (MeetingAccess).
  */
 
 namespace OCA\EmpreinteLive\Service;

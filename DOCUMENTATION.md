@@ -17,7 +17,7 @@ its normal updates from the App Store.
 ```
 ┌────────────────────────────┐     ┌──────────────────────────────────────┐
 │  Official Calendar          │     │  empreintelive (this app)             │
-│  (App Store, NOT modified)  │     │  AGPL — OAuth + Proxy + UI + API       │
+│  (App Store, NOT modified)  │     │  AGPL — OAuth + UI + API               │
 │                             │     │                                        │
 │  • .ics events              │     │  • Dedicated "EMPREINTE Live" app (top-bar)│
 │  • event deletion ──────────┼────▶│  • Server-side listener (auto-cleanup) │
@@ -60,7 +60,6 @@ Layered design: *thin* Controllers → *business* Services → HTTP client.
 | `Controller/OAuthController.php` | `/oauth/*` endpoints. Delegates to `OAuthService`, triggers reconciliation after `connect`. |
 | `Controller/LiveController.php` | `/lives*` endpoints. Delegates to `EmpreinteApiService`. |
 | `Controller/AttendeeController.php` | `/attendees/search` — participant autocomplete. Delegates to `ContactSearchService`. |
-| `Controller/ProxyController.php` | `/proxy` — generic relay. |
 | `Service/OAuthService.php` | Full OAuth flow: register / login / **authorize + approve + connect (PKCE)** / refresh / revoke. |
 | `Service/EmpreinteApiService.php` | Lives business logic: create/update/delete/get/list + invitations. Auto-retry on 401. |
 | `Service/TokenService.php` | Per-user token storage (`IConfig`), expiry computation, `hasScopedToken()`. |
@@ -99,7 +98,6 @@ Layered design: *thin* Controllers → *business* Services → HTTP client.
 | DELETE | `/lives/{id}`   | Delete |
 | POST | `/lives/{id}/members` | Invite the members of a Talk conversation (creator only) |
 | GET  | `/attendees/search` | Participant autocomplete (contacts / users) |
-| POST | `/proxy`          | Generic relay |
 
 > All endpoints are `#[NoAdminRequired]` (accessible to any logged-in user) and
 > the `userId` comes from the Nextcloud session (`IUserSession`).
@@ -299,7 +297,6 @@ Every message carries `protocol: 'empreinte-live-recording'` and `version: 1`.
 - **No loss.** If the studio gets no `received` within 5 s, it downloads the file as before. Once it gets `received`, the page is responsible: if the upload fails, the page downloads the file itself.
 - **Destination.** `POST /lives/{liveId}/recording-folder` (`DocumentService::recordingFolder`) returns the meeting's folder when the user can create files in it. Otherwise it creates `EMPREINTE Live/<title>` in the user's own space and associates it with the meeting if no folder is associated yet.
 - **Upload.** `src/services/recordingUpload.js` uses a single `PUT` up to 10 MB, and Nextcloud chunked upload above that (`MKCOL`, numbered chunks, `MOVE .file`). An existing file is never overwritten (`If-None-Match: *` / `Overwrite: F`): a 412 response retries with `name (2).webm` and so on. Leaving the page during an upload asks for confirmation.
-- **Studio side.** The change in the studio is `components/empreinte-custom/utils/recordingHost.ts`, called from `ControlBar.tsx`. Recording itself doesn't change.
 
 ### 2.11 Talk, meeting cards and the link picker
 
@@ -313,10 +310,9 @@ Collectives and file comments, with or without Talk.
 
 - **Recognised links**: the meeting domains (`meeting_domains`) and the app page
   with `?live=<id>`. A `room=` parameter on any other host is ignored.
-- **Who sees what**: the EMPREINTE API returns a meeting to any authenticated
-  account that knows its id, so a successful answer is not an access right.
-  `MeetingAccess` compares the meeting's `created_by` with the connected account:
-  only the creator gets the title, time and status, and joins from the app page.
+- **Who sees what**: `MeetingAccess` compares the meeting's `created_by` with the
+  connected account: only the creator gets the title, time and status, and joins
+  from the app page.
   Everyone else gets a card without details that opens the shared link. The
   organizer link never leaves the server for anyone but the creator.
 - **Cache**: Nextcloud caches a card by prefix and key only. The prefix is the
@@ -348,6 +344,11 @@ Bots).
   page, `?live=<id>&talk=<token>`, to invite the conversation's members.
 - The bot receives every message of the conversations it is enabled in; it only
   reacts to `/empreinte` and never logs message contents.
+- Talk does not announce a bot, and ignores what a bot answers when it is enabled
+  (there is no message to answer to). The app page therefore carries a short note,
+  shown when Talk is available, on how to enable the bot and which command to
+  type. The bot's description in Talk's settings is stored once per server, so it
+  is written in English and French.
 
 **Conversation members** are read by the browser from Talk's public API
 (`…/room/{token}/participants`), with the user's own Talk permissions: they are the
@@ -575,9 +576,8 @@ docker compose exec --user www-data nextcloud php occ config:app:set \
 docker compose exec --user www-data nextcloud php occ app:disable empreintelive
 docker compose exec --user www-data nextcloud php occ app:enable  empreintelive
 
-# Inspect a user's config / token
+# Inspect the app's config
 docker exec --user www-data empreinte-nextcloud php occ config:list empreintelive
-docker exec --user www-data empreinte-nextcloud php occ user:setting admin empreintelive tokens
 ```
 
 **Container**: `empreinte-nextcloud` · **Nextcloud**: 32 · **PHP**: 8.3 · **URL**: http://localhost:8080 (admin/admin)

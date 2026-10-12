@@ -7,33 +7,52 @@
       xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
 	<id>empreintelive</id>
 	<name>EMPREINTE Live</name>
-	<summary>EMPREINTE Live video meetings in Nextcloud: schedule them in Calendar, start them from a document in Files, share them in Talk.</summary>
+	<summary>EMPREINTE Live brings video meetings into Nextcloud: start them from a Talk conversation, a document, or the calendar.</summary>
 	<description><![CDATA[
-Standalone app that brings EMPREINTE Live video meetings into Nextcloud, alongside
-the official Calendar and Files apps — without modifying them. Start a meeting from a
-document and present it to participants, or schedule meetings from the calendar.
+EMPREINTE Live brings video meetings into Nextcloud: start them from a Talk conversation, a document, or the calendar.
+Free account creation is built into the app.
+Standalone app, it works alongside the official Talk, Calendar and Files apps without modifying them.
 
-- 📽️ **Present a document in a meeting** straight from Files: the "Present in a meeting" action on a PDF, PPTX or DOCX creates the meeting with the document already loaded in it, ready to present
-- 👥 **Participants suggested from the document's shares**, completed by searching Nextcloud users and contacts, or by typing any email address
-- 📁 **Documents panel beside the meeting**: browse the associated folder with previews, send more documents during the meeting, remove them
-- 🔗 **Share links** for one file or a whole folder — read-only or editable, password, expiration — including for participants without a Nextcloud account
-- 🛡️ **Nextcloud permissions apply everywhere**: a user with read-only access can neither present nor share, enforced by the server
-- 🔐 **Secure connection** to an EMPREINTE Live account using OAuth 2.0, with an explicit consent screen
-- 🎥 **Create, list, join, and delete video meetings** from the dedicated **EMPREINTE Live** app (its icon in the Nextcloud top app menu)
-- 📅 **Integration** with the official Nextcloud Calendar application
-- 🔄 **Automatic synchronization** when the linked calendar event is moved to trash, permanently deleted, or edited
-- ♻️ **Reconciliation** of the "EMPREINTE Live" calendar on login (back-fills missing meetings, hides meetings that belong to another account — never deletes anything on the EMPREINTE side)
-- 👥 **Participant autocomplete** (Nextcloud users and contacts)
-- 🔗 **Organizer-only** meeting link, reserved for the creator
-- 🛡️ **Server-side** token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE — no client secret to manage
-- 💬 **Meeting cards** in Talk, Text, Deck, Collectives and file comments: a pasted meeting link shows its title, time and status, with a "Join" button — details for the creator only
-- ➕ **Insert a meeting from the message box**: "EMPREINTE Live" in the link picker lists upcoming meetings or creates one, and inserts its participant link
-- 🤖 **Talk bot**: `/empreinte <title> [tomorrow|DD/MM] [14:30] [45min]` creates the meeting from a conversation and posts its link; the conversation's members are invited in one click. Set up automatically, enabled per conversation by its moderators
-- 🗨️ **Talk conversation** for a meeting, created from the meeting list, or its link posted in an existing conversation
-- 🔎 **Unified search**: find your meetings by title from the Nextcloud search
-- 🚀 **Native Nextcloud integration** using official OCP APIs and events — Talk is optional, and nothing else changes without it
+## 💬 Meetings from Talk
+
+- 🤖 **Talk bot**: type `/empreinte <title> [tomorrow|DD/MM] [14:30] [45min]` in any conversation to create a meeting and post its link. The conversation's members are invited in one click. Set up automatically, enabled per conversation by its moderators.
+- 🪪 **Meeting cards**: a pasted meeting link shows its title, time and status with a "Join" button, in Talk, Text, Deck, Collectives and file comments (details visible to the creator only).
+- ➕ **Insert a meeting from the message box**: pick "EMPREINTE Live" in the link picker to list upcoming meetings or create one, and insert its participant link.
+- 🗨️ **Talk conversation for a meeting**, created from the meeting list, or the meeting link posted in an existing conversation.
+
+## 📽️ Meetings from your files
+
+- Present a document straight from Files: the "Present in a meeting" action on a PDF, PPTX or DOCX creates the meeting with the document already loaded in it, ready to present.
+- Participants suggested from the document's shares, completed by searching Nextcloud users and contacts, or by typing any email address.
+- Documents panel beside the meeting: browse the associated folder with previews, send more documents during the meeting, remove them.
+- Share links for one file or a whole folder (read-only or editable, password, expiration), including for participants without a Nextcloud account.
+
+## 📅 Meetings from the calendar
+
+- Integration with the official Nextcloud Calendar application.
+- Automatic synchronization when the linked calendar event is moved to trash, permanently deleted, or edited.
+- Reconciliation of the "EMPREINTE Live" calendar on login: back-fills missing meetings, hides meetings that belong to another account, never deletes anything on the EMPREINTE side.
+
+## 🎥 Everything in one place
+
+- Create, list, join and delete video meetings from the dedicated EMPREINTE Live app (its icon in the Nextcloud top app menu).
+- Organizer-only meeting link, reserved for the creator.
+- Unified search: find your meetings by title from the Nextcloud search.
+
+## 🔐 Security
+
+- Nextcloud permissions apply everywhere: a user with read-only access can neither present nor share, enforced by the server.
+- Secure connection to your EMPREINTE Live account using OAuth 2.0, with an explicit consent screen.
+- Server-side token management (no sensitive tokens exposed to the browser); public OAuth client secured by PKCE, no client secret to manage.
+- Native Nextcloud integration using official OCP APIs and events. Talk is optional, and nothing else changes without it.
+
+## 🚀 Get started
+
+Install the app, open **EMPREINTE Live** from the top menu and create your free account.
+
+Need more than 5 participants or 2-hour sessions? EMPREINTE Live Pro adds longer sessions (12 h), more participants, live subtitles (FR/EN), document and spreadsheet sharing, and live streaming. → [empreinte.live](https://empreinte.live/?src=nextcloud)
 	]]></description>
-	<version>1.2.0</version>
+	<version>1.2.1</version>
 	<licence>AGPL-3.0-or-later</licence>
 
 	<author mail="dev@empreinte.live">EMPREINTE</author>

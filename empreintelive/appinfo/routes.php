@@ -11,9 +11,6 @@ return [
 		// --- Page d'app plein écran (icône du menu d'apps / top-bar) ---
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 
-		// --- Proxy : conserve pour compat pendant la migration du front ---
-		['name' => 'proxy#proxyRequest', 'url' => '/proxy', 'verb' => 'POST'],
-
 		// --- OAuth cote serveur ---
 		['name' => 'oAuth#status', 'url' => '/oauth/status', 'verb' => 'GET'],
 		['name' => 'oAuth#register', 'url' => '/oauth/register', 'verb' => 'POST'],

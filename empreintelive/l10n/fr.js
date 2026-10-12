@@ -203,6 +203,11 @@ OC.L10N.register(
     "_Invite %n person_::_Invite %n people_" : ["Inviter %n personne", "Inviter %n personnes", "Inviter %n personnes"],
     "Connected as {email}" : "Connecté en tant que {email}",
     "Hide ended meetings" : "Masquer les réunions terminées",
-    "_Show %n ended meeting_::_Show %n ended meetings_" : ["Afficher %n réunion terminée", "Afficher %n réunions terminées", "Afficher %n réunions terminées"]
+    "_Show %n ended meeting_::_Show %n ended meetings_" : ["Afficher %n réunion terminée", "Afficher %n réunions terminées", "Afficher %n réunions terminées"],
+    "Create meetings from a Talk conversation" : "Créer des réunions depuis une conversation Talk",
+    "In the conversation, a moderator opens \"···\", then \"Conversation settings\", then \"Bots\", and enables \"EMPREINTE Live\"." : "Dans la conversation, un modérateur ouvre « ··· », puis « Paramètres de la conversation », puis « Bots », et active « EMPREINTE Live ».",
+    "Anyone in the conversation with a connected EMPREINTE account can then type:" : "Tout membre de la conversation ayant connecté son compte EMPREINTE peut alors taper :",
+    "The bot posts the meeting link in the conversation. Type \"/empreinte help\" there to see all the options." : "Le bot publie le lien de la réunion dans la conversation. Tapez « /empreinte aide » pour voir toutes les options.",
+    "Got it, hide this" : "Compris, masquer"
 },
 "nplurals=3; plural=(n == 0 || n == 1) ? 0 : n != 0 && n % 1000000 == 0 ? 1 : 2;");

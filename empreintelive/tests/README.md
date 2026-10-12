@@ -25,7 +25,7 @@ les autoloaders `OCP\*` / `Sabre\*` + des mocks).
   trouvées par leur titre, plus récentes d'abord, ouvertes sur la page de l'app ;
   rien sans compte connecté ni en cas de panne EMPREINTE.
 - `Unit/Service/MeetingAccessTest.php` — une réunion n'est détaillée ou
-  modifiable que pour son créateur, même si l'API EMPREINTE répond à un autre.
+  modifiable que pour son créateur.
 - `Unit/Service/MemberInvitationServiceTest.php` — invitation des membres d'une
   conversation : créateur seul, auteur et membres sans adresse ignorés.
 - `Unit/Talk/MeetingCommandTest.php` — lecture de `/empreinte` : titre, date,

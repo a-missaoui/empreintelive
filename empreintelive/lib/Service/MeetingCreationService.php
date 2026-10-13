@@ -62,10 +62,7 @@ class MeetingCreationService {
 
 		$live = $this->api->createLive($userId, $data);
 
-		// L'email du compte EMPREINTE sert a poser le lien organisateur (admin_url)
-		// pour le createur, plutot que le lien participant.
-		$accountEmail = $this->oauth->getAccountEmail($userId);
-		$eventUid = $this->calendarEvents->createEventForLive($userId, $live, $data, $accountEmail);
+		$eventUid = $this->calendarEvents->createEventForLive($userId, $live, $data);
 
 		return [
 			'data' => $live,

@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 1.2.2 – 2026-10-13
+
+### Changed
+- **The calendar event carries the participant link.** The event created for a meeting had the organizer link in its location and description for the meeting's creator, and the calendar sent that same event to the invitees. It now always has the participant link. The creator joins as organizer from the EMPREINTE Live page. Events created before this change keep the link they had.
+
+### Fixed
+- **Copying the meeting link from inside the meeting did nothing.** The copy button of the meeting's own window ("Your meeting is ready") had no effect when the meeting was opened in Nextcloud: the page did not let the embedded meeting write to the clipboard. It now does.
+
 ## 1.2.1 – 2026-10-12
 
 ### Changed

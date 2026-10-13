@@ -26,7 +26,6 @@ class LiveCalendarSyncService {
 	public function __construct(
 		private EmpreinteApiService $api,
 		private CalendarEventService $calendarEvents,
-		private OAuthService $oauth,
 		private LoggerInterface $logger,
 	) {
 	}
@@ -38,7 +37,6 @@ class LiveCalendarSyncService {
 	 */
 	public function reconcile(string $userId): void {
 		try {
-			$accountEmail = $this->oauth->getAccountEmail($userId);
 			$lives = $this->api->getMeetings($userId);
 
 			$keep = [];
@@ -48,7 +46,7 @@ class LiveCalendarSyncService {
 				}
 			}
 
-			$created = $this->calendarEvents->backfillMissingEvents($userId, $lives, $accountEmail);
+			$created = $this->calendarEvents->backfillMissingEvents($userId, $lives);
 			$removed = $this->calendarEvents->pruneForeignEvents($userId, $keep);
 			if ($created > 0 || $removed > 0) {
 				$this->logger->info('Reconciliation calendrier EMPREINTE : ' . $created . ' cree(s), ' . $removed . ' retire(s)', [

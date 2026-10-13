@@ -177,10 +177,11 @@ Best-effort: if there is no writable calendar or on failure, the Live is still
 created (the failure is logged, `eventCreated = false`). **The official Calendar is
 never modified.**
 
-> **Link by role:** the **creator** receives the **organizer** link (`admin_url`,
-> meeting control), the **participants** the participant link (`participant_url`).
-> The choice is automatic based on the connected account, both in the calendar event
-> and in the invitations.
+> **Participant link in the event:** the calendar event always carries the
+> **participant** link (`participant_url`), for the creator too. The event is sent
+> as it is to the invitees by the calendar, so the **organizer** link (`admin_url`,
+> meeting control) is never written in it. The creator joins as organizer from the
+> EMPREINTE Live page.
 
 ### 2.5 Reconciliation: the calendar reflects the connected account
 
@@ -511,8 +512,8 @@ Unit tests open **no** network connection (everything is mocked).
   the associated meeting (§2.3).
 - **Reconciliation on connection**: the "EMPREINTE Live" calendar reflects the
   connected account (back-fill + prune protected by `SyncGuard`, §2.5).
-- **Link by role**: the creator receives the organizer link (`admin_url`), the
-  participants the participant link (`participant_url`) (§2.4).
+- **Participant link in the calendar event**: the event never carries the
+  organizer link (`admin_url`); the creator joins as organizer from the app page (§2.4).
 - **Participant autocomplete** via `OCP\Contacts` (§2.1).
 - **Reliable connection state**: based on the presence of a **scoped token**
   (`hasScopedToken`, §3).

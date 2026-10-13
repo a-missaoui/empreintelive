@@ -75,35 +75,23 @@ class CalendarEventServiceTest extends TestCase {
 		$this->assertSame('uid-1', $uid);
 	}
 
-	public function testCreatorGetsAdminUrlAndOthersGetParticipantUrl(): void {
-		// created_by == email du compte connecte -> lien organisateur (admin_url).
+	public function testEventAlwaysCarriesParticipantUrl(): void {
+		// Meme pour le createur : le lien organisateur ne va jamais dans l'evenement.
 		$live = [
 			'admin_url' => 'https://join.empreinte.live/fr?room=401-admin',
 			'participant_url' => 'https://join.empreinte.live/fr?room=401-participant',
-			'created_by' => 'Empadmin@Empreinte.dev', // casse differente : compare insensible
+			'created_by' => 'empadmin@empreinte.dev',
 		];
 
 		$empreinte = $this->calendar('empreinte-live');
 		$manager = $this->createMock(IManager::class);
 		$manager->method('getCalendarsForPrincipal')->willReturn([$empreinte]);
 		$manager->method('createEventBuilder')->willReturn(
-			$this->builderWriting($empreinte, 'uid-admin', 'https://join.empreinte.live/fr?room=401-admin'),
+			$this->builderWriting($empreinte, 'uid-part', 'https://join.empreinte.live/fr?room=401-participant'),
 		);
 		$svc = new CalendarEventService($manager, $this->createMock(CalDavBackend::class), $this->createMock(IUserManager::class), new SyncGuard(), $this->createMock(LoggerInterface::class));
-		$this->assertSame('uid-admin', $svc->createEventForLive(
-			'u', $live, ['startTime' => '2026-01-01T10:00:00Z'], 'empadmin@empreinte.dev',
-		));
-
-		// Email different -> lien participant.
-		$empreinte2 = $this->calendar('empreinte-live');
-		$manager2 = $this->createMock(IManager::class);
-		$manager2->method('getCalendarsForPrincipal')->willReturn([$empreinte2]);
-		$manager2->method('createEventBuilder')->willReturn(
-			$this->builderWriting($empreinte2, 'uid-part', 'https://join.empreinte.live/fr?room=401-participant'),
-		);
-		$svc2 = new CalendarEventService($manager2, $this->createMock(CalDavBackend::class), $this->createMock(IUserManager::class), new SyncGuard(), $this->createMock(LoggerInterface::class));
-		$this->assertSame('uid-part', $svc2->createEventForLive(
-			'u', $live, ['startTime' => '2026-01-01T10:00:00Z'], 'someone.else@corp.fr',
+		$this->assertSame('uid-part', $svc->createEventForLive(
+			'u', $live, ['startTime' => '2026-01-01T10:00:00Z'],
 		));
 	}
 

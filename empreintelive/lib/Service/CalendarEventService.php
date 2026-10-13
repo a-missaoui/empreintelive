@@ -61,10 +61,8 @@ class CalendarEventService {
 	 *
 	 * @param array<string,mixed> $live Reponse normalisee de createLive (url, id...)
 	 * @param array<string,mixed> $data title, description, startTime, endTime (ISO8601)
-	 * @param string $accountEmail Email du compte EMPREINTE connecte (pour choisir
-	 *                             le lien organisateur vs participant, cf resolveMeetingUrl).
 	 */
-	public function createEventForLive(string $userId, array $live, array $data, string $accountEmail = ''): ?string {
+	public function createEventForLive(string $userId, array $live, array $data): ?string {
 		try {
 			// Calendrier dedie "EMPREINTE Live" (cree si besoin) ; a defaut, on
 			// retombe sur le premier calendrier inscriptible pour ne jamais bloquer.
@@ -80,7 +78,7 @@ class CalendarEventService {
 			$start = $this->parseDate($data['startTime'] ?? null) ?? new DateTimeImmutable();
 			$end = $this->parseDate($data['endTime'] ?? null) ?? $start->modify('+1 hour');
 
-			$url = $this->resolveMeetingUrl($live, $accountEmail);
+			$url = $this->resolveMeetingUrl($live);
 			$title = trim((string)($data['title'] ?? '')) ?: 'EMPREINTE Live';
 			$description = trim((string)($data['description'] ?? ''));
 			if ($url !== '') {
@@ -111,24 +109,22 @@ class CalendarEventService {
 	}
 
 	/**
-	 * Choisit le lien a placer dans l'evenement selon le role de l'utilisateur
-	 * connecte. Porte de empreinteLive.js (resolveMeetingUrl) : le createur de la
-	 * visio (dont l'email EMPREINTE == created_by) obtient le lien organisateur
-	 * (admin_url) ; tout autre utilisateur obtient le lien participant. A defaut des
-	 * trois champs, on retombe sur le lien generique (url/participant_url).
+	 * Lien place dans l'evenement : toujours le lien participant, y compris pour
+	 * le createur. L'evenement est envoye tel quel aux invites par le
+	 * planificateur ; le lien organisateur (admin_url) ne doit donc jamais y
+	 * figurer. Le createur garde son acces organisateur depuis la page de l'app.
+	 * A defaut de participant_url, on retombe sur le lien generique (url), sauf
+	 * s'il s'agit du lien organisateur.
 	 *
 	 * @param array<string,mixed> $live
 	 */
-	private function resolveMeetingUrl(array $live, string $accountEmail): string {
-		$admin = (string)($live['admin_url'] ?? '');
+	private function resolveMeetingUrl(array $live): string {
 		$participant = (string)($live['participant_url'] ?? '');
-		$createdBy = (string)($live['created_by'] ?? '');
-
-		if ($admin !== '' && $participant !== '' && $createdBy !== '') {
-			$isCreator = $accountEmail !== '' && strcasecmp($accountEmail, $createdBy) === 0;
-			return $isCreator ? $admin : $participant;
+		if ($participant !== '') {
+			return $participant;
 		}
-		return (string)($live['url'] ?? $participant);
+		$url = (string)($live['url'] ?? '');
+		return $url === (string)($live['admin_url'] ?? '') ? '' : $url;
 	}
 
 	/**
@@ -307,7 +303,7 @@ class CalendarEventService {
 	 *
 	 * @param list<array<string,mixed>> $lives Liste normalisee (EmpreinteApiService::getMeetings)
 	 */
-	public function backfillMissingEvents(string $userId, array $lives, string $accountEmail): int {
+	public function backfillMissingEvents(string $userId, array $lives): int {
 		if ($lives === []) {
 			return 0;
 		}
@@ -321,15 +317,18 @@ class CalendarEventService {
 			if ($liveId === '' || isset($existing[$liveId])) {
 				continue;
 			}
+			// Sans lien, le liveId ne pourrait pas etre relu dans l'evenement :
+			// il serait recree a chaque reconciliation.
+			if ($this->resolveMeetingUrl($live) === '') {
+				continue;
+			}
 			$data = [
 				'title' => $live['title'] ?? '',
 				'description' => $live['description'] ?? '',
 				'startTime' => $live['dateStartDiffusion'] ?? null,
 				'endTime' => $live['dateEndDiffusion'] ?? null,
 			];
-			// Ces visios appartiennent au compte connecte (createur) -> lien organisateur.
-			$liveForUrl = array_merge($live, ['created_by' => $accountEmail]);
-			if ($this->createEventForLive($userId, $liveForUrl, $data, $accountEmail) !== null) {
+			if ($this->createEventForLive($userId, $live, $data) !== null) {
 				$existing[$liveId] = true;
 				$created++;
 			}

@@ -72,7 +72,7 @@
 					:src="url"
 					:title="title"
 					class="ec-room__frame"
-					allow="camera; microphone; display-capture; fullscreen"
+					allow="camera; microphone; display-capture; fullscreen; clipboard-write"
 					allowfullscreen />
 				<NcEmptyContent
 					v-else
